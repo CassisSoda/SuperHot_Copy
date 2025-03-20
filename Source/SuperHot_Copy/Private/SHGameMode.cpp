@@ -3,3 +3,17 @@
 
 #include "SHGameMode.h"
 
+void ASHGameMode::BeginPlay()
+{
+	
+}
+
+ASHGameMode::ASHGameMode()
+{
+	
+}
+
+void ASHGameMode::Tick(float DeltaTime)
+{
+
+}

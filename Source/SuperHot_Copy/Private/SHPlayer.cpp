@@ -34,6 +34,7 @@ ASHPlayer::ASHPlayer()
 	{
 		IA_PlayerTurn = TempTurn.Object;
 	}
+	
 
 }
 
@@ -41,6 +42,7 @@ ASHPlayer::ASHPlayer()
 void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+	GetWorldSettings()->SetTimeDilation(0.01f);
 	
 }
 
@@ -71,6 +73,9 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Triggered, this, &ASHPlayer::Move);
 		playerInput->BindAction(IA_PlayerTurn, ETriggerEvent::Triggered, this, &ASHPlayer::Turn);
+
+		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
+		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
 	}
 
 }
@@ -91,5 +96,18 @@ void ASHPlayer::Turn(const struct FInputActionValue& InputValue)
 	FVector2D Scale = InputValue.Get<FVector2D>();
 	AddControllerPitchInput (Scale.Y);
 	AddControllerYawInput (Scale.X);
+}
+
+void ASHPlayer::ShiftDilation()
+{
+	if (isDelay)
+	{
+		GetWorldSettings()->SetTimeDilation(1.f);
+	}
+	else
+	{
+		GetWorldSettings()->SetTimeDilation(0.01f);
+	}
+	isDelay = !isDelay;
 }
 

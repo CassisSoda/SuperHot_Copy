@@ -52,4 +52,9 @@ public:
 
 #pragma endregion InputActionFucntion
 
+
+	void ShiftDilation();
+	bool isDelay = true;
+
+
 };

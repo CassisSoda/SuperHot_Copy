@@ -13,5 +13,13 @@ UCLASS()
 class SUPERHOT_COPY_API ASHGameMode : public AGameMode
 {
 	GENERATED_BODY()
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 	
+public:
+	ASHGameMode();
+
+	virtual void Tick(float DeltaTime) override;
 };

@@ -26,4 +26,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Default")
 	class UStaticMeshComponent* MeshComp;
 
+	UPROPERTY(EditAnywhere)
+	FVector StartPos;
+	UPROPERTY(EditAnywhere)
+	FVector EndPos;
+
+	FVector Destination;
+
+	UPROPERTY(EditAnywhere)
+	float Speed = 500.f;
+
 };

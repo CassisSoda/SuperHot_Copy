@@ -10,6 +10,8 @@ ABullet::ABullet()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
+//	MeshComp->SetRelativeRotation (FRotator(90.f, 0.f, 180.f));
+	MeshComp->SetRelativeLocationAndRotation (FVector(0.f), FRotator(90.f, 0.f, 180.f));
 	SetRootComponent (MeshComp);
 
 	ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
@@ -17,7 +19,6 @@ ABullet::ABullet()
 	{
 		MeshComp = TempMesh.Object;
 	}
-	MeshComp->SetRelativeRotation (FRotator(90.f, 0.f, 180.f));
 
 }
 
@@ -25,7 +26,8 @@ ABullet::ABullet()
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Destination = EndPos - GetActorLocation() ;
+	Destination.Normalize();
 }
 
 // Called every frame
@@ -33,5 +35,6 @@ void ABullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	SetActorLocation(GetActorLocation() + Destination * Speed * DeltaTime);
 }
 
