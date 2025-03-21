@@ -75,6 +75,6 @@ DerivedDataCache/*
 
 
 #VR Plugins
-Plugins/MetaXR/8
+Plugins/MetaXR/*
 Plugins/MetaXRPlatform/*
 package/*
