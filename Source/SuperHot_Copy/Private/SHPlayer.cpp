@@ -42,7 +42,7 @@ ASHPlayer::ASHPlayer()
 void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorldSettings()->SetTimeDilation(0.01f);
+	GetWorldSettings()->SetTimeDilation(0.005f);
 	
 }
 
@@ -106,7 +106,7 @@ void ASHPlayer::ShiftDilation()
 	}
 	else
 	{
-		GetWorldSettings()->SetTimeDilation(0.01f);
+		GetWorldSettings()->SetTimeDilation(0.005f);
 	}
 	isDelay = !isDelay;
 }
