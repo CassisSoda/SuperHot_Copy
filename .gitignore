@@ -73,7 +73,8 @@ Plugins/**/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-# VR Plugins
+
+#VR Plugins
 Plugins/MetaXR/*
 Plugins/MetaXRPlatform/*
 package/*
