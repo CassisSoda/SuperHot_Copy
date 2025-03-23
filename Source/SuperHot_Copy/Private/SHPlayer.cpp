@@ -11,6 +11,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "shDebug.h"
 #include "Components/SphereComponent.h"
+#include "HandAnimInstance.h"
 
 
 // Sets default values
@@ -112,6 +113,17 @@ ASHPlayer::ASHPlayer()
 	{
 		RightHandMesh->SetSkeletalMesh (TempRight.Object);
 	}
+	ConstructorHelpers::FClassFinder<UAnimInstance> TempLeftAnim(TEXT("/Script/Engine.AnimBlueprint'/Game/MW/Blueprints/ABP_Left.ABP_Left_C'"));
+	if (TempLeftAnim.Succeeded ())
+	{
+		LeftHandMesh->SetAnimInstanceClass(TempLeftAnim.Class);
+	}
+	ConstructorHelpers::FClassFinder<UAnimInstance> TempRightAnim(TEXT("/Script/Engine.AnimBlueprint'/Game/MW/Blueprints/ABP_Right.ABP_Right_C'"));
+	if (TempRightAnim.Succeeded())
+	{
+		RightHandMesh->SetAnimInstanceClass(TempRightAnim.Class);
+	}
+
 
 	LeftHandMesh->SetRelativeRotation(FRotator(-85.f, -180.f, 90.f));
 	RightHandMesh->SetRelativeRotation (FRotator(85.f, 0.f, 90.f));
@@ -131,6 +143,10 @@ ASHPlayer::ASHPlayer()
 void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	RightAnim = Cast<UHandAnimInstance>(RightHandMesh->GetAnimInstance ());
+	LeftAnim = Cast<UHandAnimInstance>(LeftHandMesh->GetAnimInstance());
+
 	GetWorldSettings()->SetTimeDilation(0.005f);
 	
 }
@@ -153,10 +169,8 @@ void ASHPlayer::Tick(float DeltaTime)
 		LeftPunch ();
 	}
 	
-	/*if (!isGrapping)
-	{
-		DrawGrapStraight();
-	}*/
+	if(isGrapping)
+		RightAnim->GripAlpha = 1.f;
 	
 
 }
@@ -217,9 +231,6 @@ void ASHPlayer::Move(const struct FInputActionValue& InputValue)
 {
 	FVector2D Scale = InputValue.Get<FVector2D>(); 
 
-	//FVector Direction = VRCamera->GetForwardVector () * Scale.X + VRCamera->GetRightVector () + Scale.Y;
-	//AddMovementInput (Direction);
-
 	AddMovementInput (VRCamera->GetForwardVector (), Scale.X);
 	AddMovementInput (VRCamera->GetRightVector (), Scale.Y);
 
@@ -255,7 +266,8 @@ void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 {	
-	if (!RightPressedKeys.Contains(EKeys::E))
+	RightAnim->TriggerAlpha = InputValue.Get <float>();
+	if (!RightPressedKeys.Contains(EKeys::E) && !isGrapping)
 	{
 		isRTriggerPressed = true;
 		RightPressedKeys.Add(EKeys::E);
@@ -265,6 +277,7 @@ void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 {
+	RightAnim->TriggerAlpha = 0.f;
 	if (RightPressedKeys.Contains(EKeys::E))
 	{
 		RightPressedKeys.RemoveSingle(EKeys::E);
@@ -276,6 +289,7 @@ void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
 {
+	RightAnim->GripAlpha = InputValue.Get <float>();
 	if (!RightPressedKeys.Contains(EKeys::C))
 	{
 		isRGripPressed = true;
@@ -285,6 +299,8 @@ void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 {
+	RightAnim->GripAlpha = 0.f;
+
 	if (RightPressedKeys.Contains(EKeys::C))
 	{
 		RightPressedKeys.RemoveSingle(EKeys::C);
@@ -293,7 +309,6 @@ void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 	}
 	ShiftDilation ();	
 }
-
 
 void ASHPlayer::RightPunch()
 {
@@ -336,6 +351,7 @@ void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
 {
+	LeftAnim->TriggerAlpha = InputValue.Get <float>();
 	if (!LeftPressedKeys.Contains(EKeys::P))
 	{
 		isLTriggerPressed = true;
@@ -345,6 +361,7 @@ void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 {
+	LeftAnim->TriggerAlpha = 0.f;
 	if (LeftPressedKeys.Contains(EKeys::P))
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::P);
@@ -356,6 +373,7 @@ void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
 {
+	LeftAnim->GripAlpha = InputValue.Get <float>();
 	if (!LeftPressedKeys.Contains(EKeys::M))
 	{
 		isLGripPressed = true;
@@ -365,6 +383,7 @@ void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 {
+	LeftAnim->GripAlpha = 0.f;
 	if (LeftPressedKeys.Contains(EKeys::M))
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::M);
@@ -373,7 +392,6 @@ void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 	}
 	ShiftDilation();
 }
-
 
 
 void ASHPlayer::LeftPunch()
@@ -402,28 +420,35 @@ void ASHPlayer::ShiftDilation()
 	else
 	{
 		GetWorldSettings()->SetTimeDilation(0.005f);
+		//CustomTimeDilation = 200.f;
+		
 	}
 	isDelay = !isDelay;
 
 	if (bRightPunch)
 	{
 		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+		RightAnim->isPunching = true;
 	}
 	else
 	{
 		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+		RightAnim->isPunching = false;
 	}
 
 	if (bLeftPunch)
 	{
 		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+		LeftAnim->isPunching = true;
 	}
 	else
 	{
 		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+		LeftAnim->isPunching = false;
 	}
 }
 
+//TODO
 void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	
@@ -432,24 +457,22 @@ void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActo
 void ASHPlayer::DrawGrapStraight()
 {
 	FVector StartPos = VRCamera->GetComponentLocation ();
-	FVector EndPos = StartPos + VRCamera->GetForwardVector () * 200.f;
+	FVector EndPos = StartPos + VRCamera->GetForwardVector () * 150.f;
 
 	FHitResult result;
 	FCollisionQueryParams params;
 	params.AddIgnoredActor (this);
 	bool bHit = GetWorld()->LineTraceSingleByChannel (result, StartPos, EndPos, ECC_Visibility, params);
 
-	if(bHit)
-		Debug::Print (result.GetActor ()->GetActorNameOrLabel ());
 
 	if (bHit && result.GetActor()->GetActorNameOrLabel().Contains("Gun"))
 	{
 		isGrapping = true;
 		GrapActor (result.GetActor ());
+		isDelay = true; 
+		ShiftDilation ();
 		
 	}
-	if(!isGrapping)
-		DrawDebugLine(GetWorld(), StartPos, EndPos, FColor::Red, false, -1, 0, 0.5f);
 }
 
 void ASHPlayer::GrapActor(AActor* actor)

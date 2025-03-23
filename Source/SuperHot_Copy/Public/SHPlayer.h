@@ -71,6 +71,11 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Default")
 	class USphereComponent* RightHandCollision;
 
+	UPROPERTY()
+	class UHandAnimInstance* LeftAnim;
+
+	UPROPERTY()
+	class UHandAnimInstance* RightAnim;
 
 #pragma endregion Default_Settings
 
