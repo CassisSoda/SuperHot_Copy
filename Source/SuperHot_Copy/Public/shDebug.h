@@ -9,7 +9,7 @@
 
 
 
-//#define DEBUGMODE
+#define DEBUGMODE
 
 
 

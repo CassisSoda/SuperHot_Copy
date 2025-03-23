@@ -7,6 +7,11 @@
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
+#include "MotionControllerComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "shDebug.h"
+#include "Components/SphereComponent.h"
+
 
 // Sets default values
 ASHPlayer::ASHPlayer()
@@ -17,6 +22,27 @@ ASHPlayer::ASHPlayer()
 	VRCamera = CreateDefaultSubobject<UCameraComponent> (TEXT("VRCamera"));
 	VRCamera->SetupAttachment (RootComponent);
 
+	LeftHand = CreateDefaultSubobject <UMotionControllerComponent>(	TEXT("LeftHand"));
+	LeftHand->SetupAttachment (RootComponent);
+
+	LeftHandMesh = CreateDefaultSubobject <USkeletalMeshComponent>(TEXT("LeftHandMesh"));
+	LeftHandMesh->SetupAttachment (LeftHand);
+
+	LeftHandCollision = CreateDefaultSubobject<USphereComponent> (TEXT("LeftHandCollision"));
+	LeftHandCollision->SetupAttachment (LeftHand);
+
+	RightHand = CreateDefaultSubobject <UMotionControllerComponent>(TEXT("RightHand"));
+	RightHand->SetupAttachment (RootComponent);
+
+	RightHandMesh = CreateDefaultSubobject <USkeletalMeshComponent>(TEXT("RightHandMesh"));
+	RightHandMesh->SetupAttachment (RightHand);
+
+	RightHandCollision = CreateDefaultSubobject <USphereComponent>(TEXT("RightHandCollision"));
+	RightHandCollision->SetupAttachment(RightHand);
+
+
+
+	#pragma region Input_Constructor
 	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/MW/Input/IMC_Player.IMC_Player'"));
 
 	if (TempIMC.Succeeded())
@@ -34,7 +60,70 @@ ASHPlayer::ASHPlayer()
 	{
 		IA_PlayerTurn = TempTurn.Object;
 	}
+
+	//Right Button
+	ConstructorHelpers::FObjectFinder<UInputAction> TempB(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_PunchB.IA_PunchB'"));
+	if (TempB.Succeeded())
+	{
+		IA_BPunch = TempB.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempRGrip(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_RGrip.IA_RGrip'"));
+	if (TempB.Succeeded())
+	{
+		IA_RGrip = TempRGrip.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempRTrigger(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_RTrigger.IA_RTrigger'"));
+	if (TempRTrigger.Succeeded())
+	{
+		IA_RTrigger = TempRTrigger.Object;
+	}
+
+	//Left Button
+	ConstructorHelpers::FObjectFinder<UInputAction> TempY(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_PunchY.IA_PunchY'"));
+	if (TempY.Succeeded())
+	{
+		IA_YPunch = TempY.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction> TempLTrigger(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_LTrigger.IA_LTrigger'"));
+	if (TempLTrigger.Succeeded())
+	{
+		IA_LTrigger = TempLTrigger.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction> TempLGrip(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/Punch/IA_LGrip.IA_LGrip'"));
+	if (TempLGrip.Succeeded())
+	{
+		IA_LGrip = TempLGrip.Object;
+	}
+
+
+#pragma endregion Input_Constructor
+
 	
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempLeft(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left'"));
+	if (TempLeft.Succeeded())
+	{
+		LeftHandMesh->SetSkeletalMesh(TempLeft.Object);
+
+	}
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempRight(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_right.SKM_MannyXR_right'"));
+	if (TempRight.Succeeded())
+	{
+		RightHandMesh->SetSkeletalMesh (TempRight.Object);
+	}
+
+	LeftHandMesh->SetRelativeRotation(FRotator(-85.f, -180.f, 90.f));
+	RightHandMesh->SetRelativeRotation (FRotator(85.f, 0.f, 90.f));
+
+	LeftHandCollision->SetRelativeLocation (FVector(7.5f, 0.f, 0.f));
+	LeftHandCollision->SetRelativeScale3D (FVector(0.4f));
+	LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+
+	RightHandCollision->SetRelativeLocation(FVector(7.5f, 0.f, 0.f));
+	RightHandCollision->SetRelativeScale3D (FVector(0.4f));
+	RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+
 
 }
 
@@ -50,6 +139,20 @@ void ASHPlayer::BeginPlay()
 void ASHPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	bRightPunch = isBPressed && isRGripPressed && isRTriggerPressed;
+	if (bRightPunch && RightPressedKeys.Contains (EKeys::Q) &&
+		RightPressedKeys.Contains (EKeys::E) && RightPressedKeys.Contains (EKeys::C))
+	{
+		RightPunch ();
+	}
+	bLeftPunch = isYPressed && isLGripPressed && isLTriggerPressed;
+	if (bLeftPunch && LeftPressedKeys.Contains(EKeys::I) &&
+		LeftPressedKeys.Contains(EKeys::P) && LeftPressedKeys.Contains(EKeys::M))
+	{
+		LeftPunch ();
+	}
+	
 
 }
 
@@ -76,19 +179,42 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
+
+		
+		playerInput->BindAction(IA_BPunch, ETriggerEvent::Triggered, this, &ASHPlayer::OnBPressed);
+		playerInput->BindAction(IA_BPunch, ETriggerEvent::Completed,this, &ASHPlayer::OnBReleased );
+		
+		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Triggered,this, &ASHPlayer::OnRTriggerPressed);
+		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Completed,this, &ASHPlayer::OnRTriggerReleased );
+		
+		playerInput->BindAction(IA_RGrip, ETriggerEvent::Triggered, this, &ASHPlayer::OnRGripPressed);
+		playerInput->BindAction(IA_RGrip, ETriggerEvent::Completed, this, &ASHPlayer::OnRGripReleased );
+
+		playerInput->BindAction(IA_YPunch, ETriggerEvent::Triggered, this, &ASHPlayer::OnYPressed);
+		playerInput->BindAction(IA_YPunch, ETriggerEvent::Completed, this, &ASHPlayer::OnYReleased);
+
+		playerInput->BindAction(IA_LTrigger, ETriggerEvent::Triggered, this, &ASHPlayer::OnLTriggerPressed);
+		playerInput->BindAction(IA_LTrigger, ETriggerEvent::Completed, this, &ASHPlayer::OnLTriggerReleased);
+
+		playerInput->BindAction(IA_LGrip, ETriggerEvent::Triggered, this, &ASHPlayer::OnLGripPressed);
+		playerInput->BindAction(IA_LGrip, ETriggerEvent::Completed, this, &ASHPlayer::OnLGripReleased);
+
+		
+		
 	}
 
 }
 
 void ASHPlayer::Move(const struct FInputActionValue& InputValue)
 {
-	FVector2D Scale = InputValue.Get<FVector2D>();
+	FVector2D Scale = InputValue.Get<FVector2D>(); 
 
 	//FVector Direction = VRCamera->GetForwardVector () * Scale.X + VRCamera->GetRightVector () + Scale.Y;
 	//AddMovementInput (Direction);
 
 	AddMovementInput (VRCamera->GetForwardVector (), Scale.X);
 	AddMovementInput (VRCamera->GetRightVector (), Scale.Y);
+
 }
 
 void ASHPlayer::Turn(const struct FInputActionValue& InputValue)
@@ -96,6 +222,167 @@ void ASHPlayer::Turn(const struct FInputActionValue& InputValue)
 	FVector2D Scale = InputValue.Get<FVector2D>();
 	AddControllerPitchInput (Scale.Y);
 	AddControllerYawInput (Scale.X);
+}
+
+void ASHPlayer::OnBPressed(const FInputActionValue& InputValue)
+{
+	if (!RightPressedKeys.Contains(EKeys::Q))
+	{
+		isBPressed = true;
+		RightPressedKeys.Add(EKeys::Q);
+	}
+
+}
+
+void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
+{
+	if (RightPressedKeys.Contains(EKeys::Q))
+	{
+		RightPressedKeys.RemoveSingle(EKeys::Q);
+		isBPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation ();	
+}
+
+void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
+{	
+	if (!RightPressedKeys.Contains(EKeys::E))
+	{
+		isRTriggerPressed = true;
+		RightPressedKeys.Add(EKeys::E);
+
+	}
+}
+
+void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
+{
+	if (RightPressedKeys.Contains(EKeys::E))
+	{
+		RightPressedKeys.RemoveSingle(EKeys::E);
+		isRTriggerPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation ();
+}
+
+void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
+{
+	if (!RightPressedKeys.Contains(EKeys::C))
+	{
+		isRGripPressed = true;
+		RightPressedKeys.Add (EKeys::C);
+	}
+}
+
+void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
+{
+	if (RightPressedKeys.Contains(EKeys::C))
+	{
+		RightPressedKeys.RemoveSingle(EKeys::C);
+		isRGripPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation ();	
+}
+
+
+void ASHPlayer::RightPunch()
+{
+	isDelay = true;
+	ShiftDilation();
+	Debug::Print ("RightPunch");
+	
+	UE_LOG (LogTemp, Log, TEXT("RightPunch"));
+}
+
+void ASHPlayer::ResetRightCombo()
+{
+	isBPressed = false;
+	isRTriggerPressed = false;
+	isRGripPressed = false;
+
+	RightPressedKeys.Empty();
+
+}
+
+void ASHPlayer::OnYPressed(const FInputActionValue& InputValue)
+{
+	if (!LeftPressedKeys.Contains(EKeys::I))
+	{
+		isYPressed = true;
+		LeftPressedKeys.Add(EKeys::I);
+	}
+}
+
+void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
+{
+	if (LeftPressedKeys.Contains(EKeys::I))
+	{
+		LeftPressedKeys.RemoveSingle(EKeys::I);
+		isYPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation();
+}
+
+void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
+{
+	if (!LeftPressedKeys.Contains(EKeys::P))
+	{
+		isLTriggerPressed = true;
+		LeftPressedKeys.Add(EKeys::P);
+	}
+}
+
+void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
+{
+	if (LeftPressedKeys.Contains(EKeys::P))
+	{
+		LeftPressedKeys.RemoveSingle(EKeys::P);
+		isLTriggerPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation();
+}
+
+void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
+{
+	if (!LeftPressedKeys.Contains(EKeys::M))
+	{
+		isLGripPressed = true;
+		LeftPressedKeys.Add(EKeys::M);
+	}
+}
+
+void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
+{
+	if (LeftPressedKeys.Contains(EKeys::M))
+	{
+		LeftPressedKeys.RemoveSingle(EKeys::M);
+		isLGripPressed = false;
+		isDelay = false;
+	}
+	ShiftDilation();
+}
+
+
+
+void ASHPlayer::LeftPunch()
+{
+	isDelay = true;
+	ShiftDilation();
+	Debug::Print("LeftPunch");
+	UE_LOG(LogTemp, Log, TEXT("LeftPunch"));
+}
+
+void ASHPlayer::ResetLeftCombo()
+{
+	isBPressed = false;
+	isRTriggerPressed = false;
+	isRGripPressed = false;
+
+	RightPressedKeys.Empty();
 }
 
 void ASHPlayer::ShiftDilation()
@@ -109,5 +396,28 @@ void ASHPlayer::ShiftDilation()
 		GetWorldSettings()->SetTimeDilation(0.005f);
 	}
 	isDelay = !isDelay;
+
+	if (bRightPunch)
+	{
+		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+	}
+	else
+	{
+		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+	}
+
+	if (bLeftPunch)
+	{
+		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+	}
+	else
+	{
+		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+	}
+}
+
+void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
 }
 
