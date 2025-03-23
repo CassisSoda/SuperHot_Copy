@@ -43,6 +43,8 @@ public:
 	bool bLeftPunch = false;
 	TArray<FKey> LeftPressedKeys;
 
+	bool isGrapping = false;
+
 
 #pragma endregion Values
 
@@ -142,6 +144,9 @@ public:
 
 	void ShiftDilation();
 	void OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void DrawGrapStraight();
+	void GrapActor(AActor* actor);
 
 
 
