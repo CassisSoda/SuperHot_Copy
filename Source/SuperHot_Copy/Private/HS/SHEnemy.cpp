@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SHEnemy.h"
+#include "HS/SHEnemy.h"
 
-#include "Bullet.h"
 #include "HS/Enemy.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -50,29 +49,40 @@ void ASHEnemy::BeginPlay()
 void ASHEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// PlayerRef가 없으면 다시 찾기
+	if (!PlayerRef)
+	{
+		PlayerRef = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		if (!PlayerRef)
+		{
+			UE_LOG(LogTemp, Error, TEXT("PlayerRef NULL"));
+			return;
+		}
+	}
+
 	if (!bIsDead && PlayerRef)
 	{
 		RotateTowardsPlayer();
 	}
+	//if (!bIsDead && PlayerRef)
+	//{
+	//	RotateTowardsPlayer();
+	//}
 
 }
 
 void ASHEnemy::Fire()
 {
-	if (bIsDead || !BulletClass) return;
-
-	// 발사 위치 가져오기
-	FVector FireLocation = FirePoint->GetComponentLocation();
-
-	// 목표 방향 계산
-	FVector PlayerLocation = PlayerRef->GetActorLocation();
-	FRotator FireRotation = (PlayerLocation - FireLocation).Rotation();
-
-	// 총알 스폰
-	GetWorld()->SpawnActor<ABullet>(BulletClass, FireLocation, FireRotation);
-
-	UE_LOG(LogTemp, Warning, TEXT("Projectile Fired!"));
-
+	if (Gun)
+	{
+		Gun->Fire();  // Gun의 Fire() 호출
+		UE_LOG(LogTemp, Warning, TEXT("Enemy fired the gun!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Gun is NULL!"));
+	}
 }
 
 void ASHEnemy::RotateTowardsPlayer()
@@ -91,18 +101,33 @@ void ASHEnemy::AttachWeapon()
 {
 	if (GunClass)
 	{
-		// BP_Gun 인스턴스 생성
-		EquippedWeapon = GetWorld()->SpawnActor<AActor>(GunClass);
-		if (EquippedWeapon)
+		// BP_Gun 인스턴스 생성 (위치 지정 추가)
+		Gun = GetWorld()->SpawnActor<ASHGun>(GunClass, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (Gun)
 		{
-			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket"));
-			EquippedWeapon->SetOwner(this);
+			// 적(Enemy)의 SkeletalMesh에 있는 "hand_rSocket"에 부착
+			Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket"));
+
+			// 총의 소유자를 Enemy로 설정
+			Gun->SetOwner(this);
+
+			UE_LOG(LogTemp, Warning, TEXT("Gun successfully attached to enemy."));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn Gun!"));
 		}
 	}
-	//if (WeaponMesh && SkeletalMesh)
-	//{
-	//	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	//	WeaponMesh->AttachToComponent(SkeletalMesh, AttachmentRules, FName("hand_rSocket"));
-	//}
+//	if (GunClass)
+//	{
+//		// BP_Gun 인스턴스 생성
+//		Gun = GetWorld()->SpawnActor<ASHGun>(GunClass);
+//		if (Gun)
+//		{
+//			Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket"));
+//			Gun->SetOwner(this);
+//		}	
+//	}
+//
 }
 
