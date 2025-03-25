@@ -19,6 +19,8 @@ ABullet::ABullet()
 	{
 		MeshComp = TempMesh.Object;
 	}
+	MeshComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  // Bullet 채널
+	MeshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);  // Gun 채널 무시
 
 }
 

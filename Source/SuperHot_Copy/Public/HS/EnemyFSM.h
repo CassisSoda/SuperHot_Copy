@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SHPlayer.h"
 #include "Components/ActorComponent.h"
 #include "EnemyFSM.generated.h"
 
@@ -44,13 +45,53 @@ public:
 	void DamageState();
 	void DieState();
 
+	void onDamageProcess();
+
 	UPROPERTY()
 	class AEnemy* me;
 
 	UPROPERTY()
 	class UEnemyAnim* anim;
 	
-	class AWeaponBase* Weapon;
+	//class AWeaponBase* Weapon;
 	
+	
+	UPROPERTY(VisibleAnywhere,Category=FSM)
+	class ASHPlayer* target;
+
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float AttackRange = 500.0f;
+	
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float attackDelayTime = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float currentTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="AI")
+	float DetectRange = 1000.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=FSM)
+	int32 hp = 3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=FSM)
+	float Speed = 250.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = FSM)
+	float IdleDelayTime = 2.0f;
+	
+	UPROPERTY()
+	APawn* TargetPlayer = nullptr; // 감지된 플레이어
+
+	UPROPERTY()
+	class AAIController* ai;
+
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float damageDelayTime = 2.0f;
+
+private:
+	FTimerHandle RetryMoveHandle;
+
+
 };
 

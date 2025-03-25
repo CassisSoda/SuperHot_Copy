@@ -23,6 +23,5 @@ protected:
 private:
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
-	UStaticMeshComponent* GunMesh;
-	
+	USkeletalMeshComponent* GunMesh;
 };
