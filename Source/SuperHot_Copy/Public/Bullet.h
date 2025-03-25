@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Bullet.generated.h"
 
@@ -36,4 +37,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	float Speed = 500.f;
 
+
+	
 };

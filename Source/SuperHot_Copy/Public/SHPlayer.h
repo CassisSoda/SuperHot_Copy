@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "HS/Weapons/Gun.h" 
 #include "SHPlayer.generated.h"
 
 UCLASS()
@@ -42,6 +43,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_PlayerTurn;
 
+	//UPROPERTY(EditDefaultsOnly, Category = "Input")		// 총 발사
+	//class UInputAction* IA_Fire;
+
+
 #pragma endregion InputAction
 
 #pragma region InputActionFucntion
@@ -57,4 +62,15 @@ public:
 	bool isDelay = true;
 
 
+#pragma region Gun
+//	// 총 발사
+//	void Fire();
+//private:
+//	UPROPERTY(EditDefaultsOnly, Category = "Gun")
+//	TSubclassOf<AGun> GunClass;
+//
+//	UPROPERTY()
+//	AGun* EquippedGun;
+#pragma endregion 
+	
 };

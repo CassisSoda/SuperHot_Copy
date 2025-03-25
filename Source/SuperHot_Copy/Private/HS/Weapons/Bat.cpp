@@ -3,12 +3,13 @@
 
 #include "HS/Weapons/Bat.h"
 
+
 ABat::ABat()
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>BatMesh(TEXT("/Script/Engine.StaticMesh'/Game/HS/assets/Bat/source/BaseballBat_Low.BaseballBat_Low'"));
-	if(BatMesh.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UStaticMesh>BatTmpMesh(TEXT("/Script/Engine.StaticMesh'/Game/HS/assets/Bat/source/BaseballBat_Low.BaseballBat_Low'"));
+	if(BatTmpMesh.Succeeded())
 	{
-		WeaponMesh->SetStaticMesh(BatMesh.Object);
+		BatMesh->SetStaticMesh(BatTmpMesh.Object);
 	}
 	
 }

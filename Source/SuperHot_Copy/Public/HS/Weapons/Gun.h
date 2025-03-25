@@ -16,9 +16,17 @@ class SUPERHOT_COPY_API AGun : public AWeaponBase
 	
 public:
 	AGun();
-
+	
 	virtual void Fire_Implementation() override;
+	
 
+	UPROPERTY(EditDefaultsOnly, Category = "Gun")
+	TSubclassOf<class ABullet> BulletClass;
+
+
+
+
+	
 protected:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gun")
 	//TSubclassOf<AActor> 총알;

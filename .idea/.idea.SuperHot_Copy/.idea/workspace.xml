@@ -13,11 +13,37 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97aa4a89-ff2f-4f69-9d34-8aee88b3e643" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEditor.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEditor.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.SuperHot_Copy/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SuperHot_Copy/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HS/Empty_Actor1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SuperHot_Copy.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/SuperHot_Copy.uproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin_Skeleton.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin_Skeleton.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Characters/Mannequins/Animations/Manny/MM_Run_Fwd.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Characters/Mannequins/Animations/Manny/MM_Run_Fwd.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Enemy/ABP_Enemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Enemy/ABP_Enemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Enemy/BP_Enemy_Bat.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Enemy/BP_Enemy_Bat.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Enemy/BP_Enemy_Gun.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Enemy/BP_Enemy_Gun.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Enemy/Enemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Enemy/Enemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Maps/Test.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Maps/Test.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Maps/Test_HLOD0_Instancing.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Maps/Test_HLOD0_Instancing.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/Weapons/BP_Gun.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/Weapons/BP_Gun.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HS/assets/gun/gun.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HS/assets/gun/gun.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MW/Blueprints/BP_SHPlayer.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MW/Blueprints/BP_SHPlayer.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MW/Input/IMC_Player.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MW/Input/IMC_Player.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/Bullet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/Bullet.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/EnemyFSM.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/EnemyFSM.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy_Gun.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy_Gun.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/Bat.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/Bat.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/Gun.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/Gun.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/WeaponBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/WeaponBase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/SHPlayer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Private/SHPlayer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/Bullet.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/Bullet.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyAnim.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyAnim.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyFSM.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyFSM.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Enemy_Gun.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Enemy_Gun.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Weapons/Gun.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Weapons/Gun.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Weapons/WeaponBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Weapons/WeaponBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/SHPlayer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/Public/SHPlayer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SuperHot_Copy/SuperHot_Copy.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SuperHot_Copy/SuperHot_Copy.Build.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +57,8 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://C:/Program Files/Epic Games/UE_5.5/Engine/Source/Runtime/AIModule/Classes/AIController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://C:/Program Files/Epic Games/UE_5.5/Engine/Source/Runtime/AIModule/Classes/Navigation/PathFollowingComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://C:/Program Files/Epic Games/UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Character.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/EnemyAnim.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -38,12 +66,16 @@
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy_Bat.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Enemy_Gun.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/HS/Weapons/Bat.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/SHEnemy.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/SHGun.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Enemy.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyAnim.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/EnemyFSM.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Enemy_Bat.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Enemy_Gun.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/HS/Weapons/Bat.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/SHEnemy.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/SuperHot_Copy/Public/SHGun.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
@@ -176,6 +208,15 @@
       <updated>1742365131741</updated>
       <workItem from="1742365134610" duration="6082000" />
       <workItem from="1742449781697" duration="15722000" />
+      <workItem from="1742523154742" duration="213000" />
+      <workItem from="1742523419103" duration="155000" />
+      <workItem from="1742535027497" duration="51000" />
+      <workItem from="1742538132603" duration="9099000" />
+      <workItem from="1742634474892" duration="4166000" />
+      <workItem from="1742778495532" duration="16790000" />
+      <workItem from="1742800820379" duration="830000" />
+      <workItem from="1742801866209" duration="4819000" />
+      <workItem from="1742832033880" duration="7932000" />
     </task>
     <servers />
   </component>
@@ -185,5 +226,16 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/Source/SuperHot_Copy/Private/SHPlayer.cpp</url>
+          <line>45</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

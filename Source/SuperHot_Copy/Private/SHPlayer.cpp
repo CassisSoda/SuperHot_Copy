@@ -43,6 +43,21 @@ void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	GetWorldSettings()->SetTimeDilation(0.005f);
+#pragma region gun
+//	if (GunClass)
+//	{
+//		FActorSpawnParameters SpawnParams;
+//		SpawnParams.Owner = this;
+//		SpawnParams.Instigator = GetInstigator();
+//
+//		EquippedGun = GetWorld()->SpawnActor<AGun>(GunClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+//	
+//		if (EquippedGun)
+//		{
+//			EquippedGun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket")); 
+//		}
+//	}
+#pragma endregion
 	
 }
 
@@ -76,6 +91,8 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
+
+		//playerInput->BindAction(IA_Fire, ETriggerEvent::Triggered, this, &ASHPlayer::Fire); // 총 발사
 	}
 
 }
@@ -110,4 +127,17 @@ void ASHPlayer::ShiftDilation()
 	}
 	isDelay = !isDelay;
 }
+
+//void ASHPlayer::Fire()
+//{
+//	if (EquippedGun)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Firing Gun: %s"), *EquippedGun->GetName());
+//		EquippedGun->Fire();
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("EquippedGun is NULL, cannot fire!"));
+//	}
+//}
 

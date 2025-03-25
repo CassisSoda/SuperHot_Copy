@@ -38,7 +38,10 @@ protected:
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
-	UStaticMeshComponent* WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
+	UStaticMeshComponent* BatMesh;
 
 
 
