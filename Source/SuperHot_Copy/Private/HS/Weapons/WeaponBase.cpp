@@ -7,8 +7,11 @@
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = WeaponMesh;
+
+	BatMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BatMesh"));
+	RootComponent = BatMesh;
 }
 
 

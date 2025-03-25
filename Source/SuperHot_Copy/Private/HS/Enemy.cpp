@@ -10,7 +10,7 @@ AEnemy::AEnemy()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>MestTmp(TEXT("/Script/Engine.SkeletalMesh'/Game/HS/Enemy/SKM_Enemy.SKM_Enemy'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>MestTmp(TEXT("/Script/Engine.SkeletalMesh'/Game/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
 	if (MestTmp.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(MestTmp.Object);
@@ -19,11 +19,11 @@ AEnemy::AEnemy()
 
 	FSM = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
 
-	ConstructorHelpers::FClassFinder<UAnimInstance>TmpClass(TEXT("/Script/Engine.AnimBlueprint'/Game/HS/Enemy/ABP_Enemy.ABP_Enemy'"));
-	if (TmpClass.Succeeded())
-	{
-		GetMesh()->SetAnimInstanceClass(TmpClass.Class);
-	}
+	//ConstructorHelpers::FClassFinder<UAnimInstance>TmpClass(TEXT("/Script/Engine.AnimBlueprint'/Game/HS/Enemy/ABP_Enemy0.ABP_Enemy0'"));
+	//if (TmpClass.Succeeded())
+	//{
+	//	GetMesh()->SetAnimInstanceClass(TmpClass.Class);
+	//}
 
 }
 
