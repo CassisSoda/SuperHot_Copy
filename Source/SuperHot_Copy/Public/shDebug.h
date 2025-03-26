@@ -203,7 +203,7 @@ namespace Debug
 	* Result example: "Null => ObjectName = FileName = LineNumber = FunctionName"
 	*/
 	template<typename T>
-	inline static void NullPrint(T Object_, const FString& Message_, float DisplayTime_ = 15.f, const std::source_location Location_ = std::source_location::current())
+	inline static bool NullPrint(T Object_, const FString& Message_, float DisplayTime_ = 15.f, const std::source_location Location_ = std::source_location::current())
 	{
 		if (nullptr != Object_)
 			return true;

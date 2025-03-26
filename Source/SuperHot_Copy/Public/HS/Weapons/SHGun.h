@@ -76,6 +76,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Gun")
 	TSubclassOf<AEnemyBullet> BulletClass;
 
+
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent* BoxComp;
+
 private:
 	APawn* PlayerRef;
 

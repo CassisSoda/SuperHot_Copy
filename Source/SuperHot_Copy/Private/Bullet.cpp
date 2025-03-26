@@ -13,7 +13,7 @@ ABullet::ABullet()
 	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
 //	MeshComp->SetRelativeRotation (FRotator(90.f, 0.f, 180.f));
 	//MeshComp->SetRelativeLocationAndRotation (FVector(0.f), FRotator(90.f, 0.f, 180.f));
-	MeshComp-> SetRootComponent(MeshComp);
+	SetRootComponent(MeshComp);
 
 	ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
 	if (TempMesh.Succeeded())

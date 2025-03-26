@@ -75,6 +75,9 @@ public:
 	class UMotionControllerComponent* RightHand;
 
 	UPROPERTY(VisibleAnywhere, Category = "Default")
+	class UMotionControllerComponent* RightHandAim;
+
+	UPROPERTY(VisibleAnywhere, Category = "Default")
 	class USkeletalMeshComponent* RightHandMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Default")
@@ -125,6 +128,9 @@ public:
 
 	#pragma endregion Left_Btn
 
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class UChildActorComponent* CrosshairComp;
+
 
 #pragma endregion InputAction
 
@@ -164,6 +170,8 @@ public:
 	void TryGrab();
 	void GrabActor(AActor* actor);
 	void TryRelease();
+
+	void DrawCrosshair();
 
 
 

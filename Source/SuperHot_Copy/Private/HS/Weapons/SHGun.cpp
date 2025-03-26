@@ -4,6 +4,8 @@
 #include "HS/Weapons/SHGun.h"
 #include "HS/Weapons/Gun.h"
 #include "Kismet/GameplayStatics.h"
+#include "shDebug.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASHGun::ASHGun()
@@ -12,7 +14,12 @@ ASHGun::ASHGun()
 	PrimaryActorTick.bCanEverTick = false;
 	
 	// 루트 컴포넌트 설정
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+	BoxComp = CreateDefaultSubobject <UBoxComponent>("BoxComp");
+	BoxComp->SetBoxExtent(FVector(3.f, 24.f, 15.f));
+	SetRootComponent(BoxComp);
+
 
 	// 총기 메쉬 설정
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
@@ -78,6 +85,7 @@ void ASHGun::Fire()
 	}
 	if (!PlayerRef) 
 	{
+		
 		UE_LOG(LogTemp, Error, TEXT("PlayerRef is NULL! Cannot determine firing direction."));
 		return;
 	}

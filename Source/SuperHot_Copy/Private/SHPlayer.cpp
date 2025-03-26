@@ -13,7 +13,8 @@
 #include "Components/SphereComponent.h"
 #include "HandAnimInstance.h"
 #include "Engine/OverlapResult.h"
-#include "SHGun.h"
+#include "HS/Weapons/SHGun.h"
+#include "Components/ChildActorComponent.h"
 
 
 // Sets default values
@@ -37,11 +38,17 @@ ASHPlayer::ASHPlayer()
 	RightHand = CreateDefaultSubobject <UMotionControllerComponent>(TEXT("RightHand"));
 	RightHand->SetupAttachment (RootComponent);
 
+	RightHandAim = CreateDefaultSubobject <UMotionControllerComponent>(TEXT("RightHandAim"));
+	RightHandAim->SetupAttachment(RootComponent);
+
 	RightHandMesh = CreateDefaultSubobject <USkeletalMeshComponent>(TEXT("RightHandMesh"));
 	RightHandMesh->SetupAttachment (RightHand);
 
 	RightHandCollision = CreateDefaultSubobject <USphereComponent>(TEXT("RightHandCollision"));
 	RightHandCollision->SetupAttachment(RightHand);
+
+	CrosshairComp = CreateDefaultSubobject <UChildActorComponent>(TEXT("CrosshairComp"));
+	CrosshairComp->SetupAttachment (RootComponent);
 
 
 
@@ -125,7 +132,11 @@ ASHPlayer::ASHPlayer()
 	{
 		RightHandMesh->SetAnimInstanceClass(TempRightAnim.Class);
 	}
-
+	ConstructorHelpers::FClassFinder<AActor> TempCrosshair(TEXT("/Script/Engine.Blueprint'/Game/MW/Blueprints/BP_Crosshair.BP_Crosshair_C'"));
+	if (TempCrosshair.Succeeded())
+	{
+		CrosshairComp->SetChildActorClass (TempCrosshair.Class);
+	}
 
 	LeftHandMesh->SetRelativeRotation(FRotator(-85.f, -180.f, 90.f));
 	RightHandMesh->SetRelativeRotation (FRotator(85.f, 0.f, 90.f));
@@ -157,6 +168,8 @@ void ASHPlayer::BeginPlay()
 void ASHPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	DrawCrosshair ();
 
 	bRightPunch = isBPressed && isRGripPressed && isRTriggerPressed;
 	if (!isGrabbing && bRightPunch && RightPressedKeys.Contains (EKeys::Q) &&
@@ -423,6 +436,8 @@ void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
 	Debug::Print (FString("Trigger!"));
 	
 	auto gun = Cast<ASHGun>(GrabObject);
+	//auto gun1 = Cast<ASHGun>(GrabObjectComp);
+	//Debug::NullPrint(gun1, FString(""));
 
 
 	if (gun)
@@ -551,5 +566,36 @@ void ASHPlayer::TryRelease()
 	GrabObjectComp->SetSimulatePhysics (true);
 	GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
 	isGrabbing = false;
+}
+
+void ASHPlayer::DrawCrosshair()
+{
+	FVector StartPos = RightHandAim->GetComponentLocation ();
+	FVector EndPos = StartPos + RightHandAim->GetForwardVector () * 10000;
+	FHitResult HitInfo;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor (this);
+
+	bool bHit = GetWorld ()->LineTraceSingleByChannel (HitInfo, StartPos,EndPos, ECC_Visibility, params);
+	float dist = 0.f;
+
+	if (bHit)
+	{
+		CrosshairComp->SetWorldLocation (HitInfo.Location);
+		dist = FVector::Distance(VRCamera->GetComponentLocation (), HitInfo.Location);
+	}
+	else
+	{
+		CrosshairComp->SetWorldLocation (EndPos);
+		dist = FVector::Distance(VRCamera->GetComponentLocation(), EndPos);
+	}
+
+	dist = FMath::Max (1, dist);
+
+	CrosshairComp->SetWorldScale3D (FVector(dist));
+
+	FVector DirectionCrosshair = CrosshairComp->GetComponentLocation () - VRCamera->GetComponentLocation ();
+	CrosshairComp->SetWorldRotation (FRotationMatrix::MakeFromX(DirectionCrosshair).Rotator());
+
 }
 
