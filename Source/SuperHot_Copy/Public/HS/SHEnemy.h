@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SHGun.h"
 #include "GameFramework/Character.h"
 #include "SHEnemy.generated.h"
 
@@ -38,9 +39,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	bool bIsDead = false;
 
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	TSubclassOf<class ABullet> BulletClass; // 블루프린트에서 설정할 수 있도록
-
 	UPROPERTY(EditAnywhere, Category = "Components")
 	USceneComponent* FirePoint; // 발사 위치 지정
 
@@ -55,6 +53,11 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AActor> GunClass;  // BP_Gun을 설정할 변수
 
-	UPROPERTY()
-	AActor* EquippedWeapon;
+
+public:
+	
+	// 총기 객체를 저장할 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	ASHGun* Gun;  // Gun을 저장할 변수
+
 };

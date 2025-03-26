@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Bullet.h"
+#include "EnemyBullet.h"
 #include "GameFramework/Actor.h"
 #include "SHGun.generated.h"
 
@@ -40,10 +40,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Gun")
 	FVector MuzzleOffset;
 
-	// 발사체 클래스
-	UPROPERTY(EditAnywhere, Category = "Gun")
-	TSubclassOf<ABullet> BulletClass;
-
 	// 발사 가능 여부
 	bool bCanFire = true;
 
@@ -53,7 +49,8 @@ private:
 
 	// 쿨다운 리셋 함수
 	void ResetFireCooldown();
-
+	
+public:
 	// 총구 이펙트
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	UParticleSystem* MuzzleEffect;
@@ -68,14 +65,19 @@ private:
 
 	FTimerHandle FireCooldownTimer;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* BulletMesh;
 
 	// 총구 위치 설정
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* FirePoint;
 	
-	UPROPERTY(EditDefaultsOnly)
-	class UBoxComponent* BoxComp;
+	// 발사체 클래스
+	UPROPERTY(EditDefaultsOnly, Category = "Gun")
+	TSubclassOf<AEnemyBullet> BulletClass;
+
+private:
+	APawn* PlayerRef;
+
 
 };
