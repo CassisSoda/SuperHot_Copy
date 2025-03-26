@@ -5,6 +5,8 @@
 
 #include "HS/Weapons/Gun.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
+#include "shDebug.h"
 
 // Sets default values
 ASHGun::ASHGun()
@@ -12,15 +14,20 @@ ASHGun::ASHGun()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	BoxComp = CreateDefaultSubobject <UBoxComponent>("BoxComp");
+	BoxComp->SetBoxExtent (FVector(3.f, 24.f, 15.f));
+	SetRootComponent (BoxComp);
 
 
 	// 루트 컴포넌트 설정
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	// 총기 메쉬 설정
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	WeaponMesh->SetupAttachment(RootComponent);
 	WeaponMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);  // Gun 채널
+	WeaponMesh->SetSimulatePhysics(true);
+	
 
 	//  총기 모델 로드
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> GunMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Meshes/Jericho_941.Jericho_941'"));
@@ -71,6 +78,8 @@ void ASHGun::Fire()
 
 	bCanFire = false;
 
+	Debug::Print(FString("Fire_Call"));
+
 	// 발사 위치 및 방향 설정
 	FVector MuzzleLocation = FirePoint->GetComponentLocation(); 
 	FRotator MuzzleRotation = FirePoint->GetComponentRotation();
@@ -78,6 +87,7 @@ void ASHGun::Fire()
 	// 발사체 생성
 	if (BulletClass)
 	{
+		Debug::Print(FString("Spawn Bullet"));
 		GetWorld()->SpawnActor<ABullet>(BulletClass, MuzzleLocation, MuzzleRotation);
 	}
 

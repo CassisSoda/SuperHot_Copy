@@ -12,6 +12,8 @@
 #include "shDebug.h"
 #include "Components/SphereComponent.h"
 #include "HandAnimInstance.h"
+#include "Engine/OverlapResult.h"
+#include "SHGun.h"
 
 
 // Sets default values
@@ -157,19 +159,19 @@ void ASHPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	bRightPunch = isBPressed && isRGripPressed && isRTriggerPressed;
-	if (!isGrapping && bRightPunch && RightPressedKeys.Contains (EKeys::Q) &&
+	if (!isGrabbing && bRightPunch && RightPressedKeys.Contains (EKeys::Q) &&
 		RightPressedKeys.Contains (EKeys::E) && RightPressedKeys.Contains (EKeys::C))
 	{
 		RightPunch ();
 	}
 	bLeftPunch = isYPressed && isLGripPressed && isLTriggerPressed;
-	if (!isGrapping && bLeftPunch && LeftPressedKeys.Contains(EKeys::I) &&
+	if (!isGrabbing && bLeftPunch && LeftPressedKeys.Contains(EKeys::I) &&
 		LeftPressedKeys.Contains(EKeys::P) && LeftPressedKeys.Contains(EKeys::M))
 	{
 		LeftPunch ();
 	}
 	
-	if(isGrapping)
+	if(isGrabbing)
 		RightAnim->GripAlpha = 1.f;
 	
 
@@ -199,7 +201,8 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
 
-		playerInput->BindAction(IA_RGrip, ETriggerEvent::Started, this, &ASHPlayer::DrawGrapStraight);
+		playerInput->BindAction(IA_RGrip, ETriggerEvent::Started, this, &ASHPlayer::TryGrab);
+		playerInput->BindAction(IA_RGrip, ETriggerEvent::Completed, this, &ASHPlayer::TryGrab);
 		
 		#pragma region Punch_Bind
 		playerInput->BindAction(IA_BPunch, ETriggerEvent::Triggered, this, &ASHPlayer::OnBPressed);
@@ -220,6 +223,8 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		playerInput->BindAction(IA_LGrip, ETriggerEvent::Triggered, this, &ASHPlayer::OnLGripPressed);
 		playerInput->BindAction(IA_LGrip, ETriggerEvent::Completed, this, &ASHPlayer::OnLGripReleased);
 		#pragma endregion Punch_Bind
+
+		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Started, this, &ASHPlayer::GunFire);
 		
 		
 		
@@ -267,7 +272,7 @@ void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 {	
 	RightAnim->TriggerAlpha = InputValue.Get <float>();
-	if (!RightPressedKeys.Contains(EKeys::E) && !isGrapping)
+	if (!RightPressedKeys.Contains(EKeys::E) && !isGrabbing)
 	{
 		isRTriggerPressed = true;
 		RightPressedKeys.Add(EKeys::E);
@@ -411,6 +416,24 @@ void ASHPlayer::ResetLeftCombo()
 	RightPressedKeys.Empty();
 }
 
+void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
+{
+	if(!isGrabbing)
+		return;
+	Debug::Print (FString("Trigger!"));
+	
+	auto gun = Cast<ASHGun>(GrabObject);
+
+
+	if (gun)
+	{
+		Debug::Print(gun->GetActorNameOrLabel ());
+		gun->Fire();
+
+	}
+
+}
+
 void ASHPlayer::ShiftDilation()
 {
 	if (isDelay)
@@ -454,33 +477,79 @@ void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActo
 	
 }
 
-void ASHPlayer::DrawGrapStraight()
+void ASHPlayer::TryGrab()
 {
-	FVector StartPos = VRCamera->GetComponentLocation ();
-	FVector EndPos = StartPos + VRCamera->GetForwardVector () * 150.f;
+	if(isGrabbing)
+		return;
+	FVector HandPos = RightHand->GetComponentLocation ();
+	TArray<FOverlapResult> HitObjects;
 
-	FHitResult result;
 	FCollisionQueryParams params;
 	params.AddIgnoredActor (this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel (result, StartPos, EndPos, ECC_Visibility, params);
+	bool bHit = GetWorld()->OverlapMultiByChannel (HitObjects, HandPos, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere (GrabRadius), params);
+	DrawSphere (GetWorld (),HandPos,1.f,FColor::Yellow,GrabRadius);
 
+	if(!bHit)
+		return;
+	
+	int Nearest = 0;
 
-	if (bHit && result.GetActor()->GetActorNameOrLabel().Contains("Gun"))
+	for (int i = 0; i < HitObjects.Num(); i++)
 	{
-		isGrapping = true;
-		GrapActor (result.GetActor ());
-		isDelay = true; 
+		auto HitComp = HitObjects[i].GetComponent ();
+		if (!HitComp->IsSimulatingPhysics())
+			continue;
+
+		isGrabbing = true;
+
+		FVector NearestPos = HitObjects[Nearest].GetActor ()->GetActorLocation ();
+		float NearestDistance = FVector::Distance (NearestPos, HandPos);
+
+		FVector NextPos = HitObjects[i].GetActor()->GetActorLocation();
+		float NextDistance = FVector::Distance(NextPos, HandPos);
+
+		if (NextDistance < NearestDistance)
+		{
+			Nearest = i;
+		}
+
+	}
+	FString s = HitObjects[Nearest].GetActor()->GetActorNameOrLabel();
+	Debug::Print(s);
+
+	if (isGrabbing && HitObjects[Nearest].GetActor()->GetActorNameOrLabel().Contains("SHGun"))
+	{
+		GrabObjectComp = HitObjects[Nearest].GetComponent ();
+		GrabObject = HitObjects[Nearest].GetActor();
+
+		GrabObjectComp->SetSimulatePhysics (false);
+		GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::NoCollision);
+		GrabActor (GrabObject);
+		//GrabActor (HitObjects[Nearest].GetActor ());
+		isDelay = true;
 		ShiftDilation ();
 		
 	}
+	
 }
 
-void ASHPlayer::GrapActor(AActor* actor)
+void ASHPlayer::GrabActor(AActor* actor)
 {
 	FName WeaponSocket(TEXT("weapon_Socket"));
 	if (RightHandMesh->DoesSocketExist(WeaponSocket))
 	{
 		actor->AttachToComponent (RightHandMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 	}
+}
+
+void ASHPlayer::TryRelease()
+{
+	if(!isGrabbing)
+		return;
+
+	GrabObjectComp->DetachFromComponent (FDetachmentTransformRules::KeepWorldTransform);
+	GrabObjectComp->SetSimulatePhysics (true);
+	GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
+	isGrabbing = false;
 }
 

@@ -74,6 +74,8 @@ private:
 	// 총구 위치 설정
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* FirePoint;
-
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent* BoxComp;
 
 };

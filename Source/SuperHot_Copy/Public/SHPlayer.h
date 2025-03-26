@@ -43,10 +43,19 @@ public:
 	bool bLeftPunch = false;
 	TArray<FKey> LeftPressedKeys;
 
-	bool isGrapping = false;
+	bool isGrabbing = false;
 
 
 #pragma endregion Values
+
+	UPROPERTY(EditAnywhere, Category = "Grab")
+	float GrabRadius = 100.f;
+
+	UPROPERTY()
+	class UPrimitiveComponent* GrabObjectComp;
+
+	UPROPERTY()
+	class AActor* GrabObject;
 
 #pragma region Default_Settings
 
@@ -91,7 +100,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_PlayerTurn;
 
-	#pragma region Right_Punch
+	#pragma region Right_Btn
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_BPunch;
@@ -101,9 +110,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_RGrip;
-	#pragma endregion Right_Punch
+	#pragma endregion Right_Btn
 
-	#pragma region Left_Punch
+	#pragma region Left_Btn
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_YPunch;
@@ -114,8 +123,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_LGrip;
 
-	#pragma endregion Left_Punch
-	
+	#pragma endregion Left_Btn
+
 
 #pragma endregion InputAction
 
@@ -144,14 +153,17 @@ public:
 	void LeftPunch();
 	void ResetLeftCombo();
 
+	void GunFire(const struct FInputActionValue& InputValue);
+
 
 #pragma endregion InputActionFucntion
 
 	void ShiftDilation();
 	void OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	void DrawGrapStraight();
-	void GrapActor(AActor* actor);
+	void TryGrab();
+	void GrabActor(AActor* actor);
+	void TryRelease();
 
 
 
