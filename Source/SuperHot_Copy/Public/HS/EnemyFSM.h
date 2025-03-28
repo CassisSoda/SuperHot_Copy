@@ -47,6 +47,8 @@ public:
 
 	void onDamageProcess();
 
+	void OnAttackEnd();
+	
 	UPROPERTY()
 	class AEnemy* me;
 
@@ -63,13 +65,13 @@ public:
 	float AttackRange = 500.0f;
 	
 	UPROPERTY(EditAnywhere, Category=FSM)
-	float attackDelayTime = 5.0f;
+	float attackDelayTime = 1.5f;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float currentTime = 0.0f;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="AI")
-	float DetectRange = 1000.0f;
+	float DetectRange = 800.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=FSM)
 	int32 hp = 3;
@@ -88,6 +90,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float damageDelayTime = 2.0f;
+
+	
+	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);
+
+	FVector randomPos;
+
 
 private:
 	FTimerHandle RetryMoveHandle;

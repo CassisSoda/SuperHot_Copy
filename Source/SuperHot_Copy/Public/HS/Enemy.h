@@ -49,7 +49,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void FireWeapon();
 
-
+	UFUNCTION(BlueprintCallable, Category="Stage")
+	void Die();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")

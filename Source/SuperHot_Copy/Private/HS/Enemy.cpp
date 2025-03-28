@@ -2,7 +2,9 @@
 
 #include "SuperHot_Copy/Public/HS/Enemy.h"
 
+#include "SHGameMode.h"
 #include "HS/Weapons/WeaponBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "SuperHot_Copy/Public/HS/EnemyFSM.h"
 
 // Sets default values
@@ -19,11 +21,11 @@ AEnemy::AEnemy()
 
 	FSM = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
 
-	//ConstructorHelpers::FClassFinder<UAnimInstance>TmpClass(TEXT("/Script/Engine.AnimBlueprint'/Game/HS/Enemy/ABP_Enemy0.ABP_Enemy0'"));
-	//if (TmpClass.Succeeded())
-	//{
-	//	GetMesh()->SetAnimInstanceClass(TmpClass.Class);
-	//}
+	ConstructorHelpers::FClassFinder<UAnimInstance>TmpClass(TEXT("/Script/Engine.AnimBlueprint'/Game/HS/Enemy/ABP_Enemy_Gun.ABP_Enemy_Gun'"));
+	if (TmpClass.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(TmpClass.Class);
+	}
 
 }
 
@@ -88,5 +90,15 @@ void AEnemy::FireWeapon()
 	{
 		CurrentWeapon->Fire();
 	}
+}
+
+void AEnemy::Die()	// 스테이지
+{
+	ASHGameMode* GameMode = Cast<ASHGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GameMode)
+	{
+		GameMode->OnEnemyKilled();
+	}
+	Destroy();
 }
 

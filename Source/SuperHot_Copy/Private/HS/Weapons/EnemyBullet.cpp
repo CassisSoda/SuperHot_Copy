@@ -2,6 +2,8 @@
 
 #include "HS/Weapons/EnemyBullet.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 
@@ -11,8 +13,14 @@ AEnemyBullet::AEnemyBullet()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
+
 	CapsuleComp = CreateDefaultSubobject <UCapsuleComponent>(TEXT("CapsuleComp"));
 	SetRootComponent(CapsuleComp);
+
+	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComp->SetupAttachment(RootComponent);
+	MeshComp->SetRelativeLocation(FVector(7.55f, 0.f, -7.25f));
+
 
 	CapsuleComp->SetCapsuleHalfHeight(4.f);
 	CapsuleComp->SetCapsuleRadius(2.f);
@@ -27,9 +35,15 @@ AEnemyBullet::AEnemyBullet()
 	{
 		MeshComp = TempMesh.Object;
 	}
+
 	//CapsuleComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  // Bullet 채널
 	//CapsuleComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);  // Gun 채널 무시
 	CapsuleComp->SetCollisionProfileName(TEXT("Bullet"));
+
+
+	//// Niagara 컴포넌트 생성
+	//BulletTrail = CreateDefaultSubobject<UNiagaraSystem>(TEXT("BulletTrail"));
+	//BulletTrail->SetupAttachment(MeshComp);
 
 }
 
@@ -44,7 +58,22 @@ void AEnemyBullet::BeginPlay()
 		EndPos = PlayerRef->GetActorLocation();
 		Destination = (EndPos - GetActorLocation()).GetSafeNormal();
 	}
-	
+
+	if (BulletTrailEffect)
+	{
+		FVector TrailOffset = FVector(-10.f, 0.f, 0.f);
+		FRotator TrailRotation = GetActorRotation();
+
+	//	UGameplayStatics::SpawnEmitterAtLocation(
+	//GetWorld(), BulletTrailEffect, GetActorLocation(), GetActorRotation(), true);
+
+		UGameplayStatics::SpawnEmitterAttached(
+			BulletTrailEffect, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset);
+//		UNiagaraFunctionLibrary::SpawnSystemAttached(
+//BulletTrailNia, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+//EAttachLocation::KeepRelativeOffset, true);
+	}
 }
 
 // Called every frame

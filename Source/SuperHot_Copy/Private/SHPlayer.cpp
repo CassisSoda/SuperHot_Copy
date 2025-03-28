@@ -2,6 +2,7 @@
 
 
 #include "SHPlayer.h"
+#include "EngineUtils.h"
 #include "Camera/CameraComponent.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputMappingContext.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
@@ -17,6 +18,10 @@
 #include "Components/ChildActorComponent.h"
 #include "Crosshair.h"
 #include "SHGameMode.h"
+#include "SHGameMode.h"
+#include "Engine/DamageEvents.h"
+#include "GameFramework/GameModeBase.h"
+#include "HS/SHEnemy.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -259,6 +264,9 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		playerInput->BindAction(IA_TestKill, ETriggerEvent::Started, this, &ASHPlayer::TestKill);
 		playerInput->BindAction(IA_RespawnPlayer, ETriggerEvent::Started, this, &ASHPlayer::ClearPlayerState);
 		
+	
+		playerInput->BindAction(IA_TESTDamage, ETriggerEvent::Started, this, &ASHPlayer::ApplyDamageToEnemy);
+
 		
 	}
 
@@ -613,6 +621,25 @@ void ASHPlayer::GrabActor(AActor* actor)
 		}
 	}
 }
+#pragma region hs추가
+void ASHPlayer::ApplyDamageToEnemy()
+{
+	for (TActorIterator<ASHEnemy> It(GetWorld()); It; ++It)
+	{
+		ASHEnemy* Enemy = *It;
+		if (Enemy)
+		{
+			FDamageEvent DamageEvent; // 기본 데미지 이벤트
+			float DamageAmount = 100.0f;
+			AController* EventInstigator = GetController(); // 플레이 컨트롤러
+			AActor* DamageCauser = this; // 데미지 가하는 액터
+
+			Enemy->TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+			return; // 첫 번째 발견한 적만 공격
+		}
+	}
+}
+#pragma endregion hs추가
 
 void ASHPlayer::TryRelease()
 {
@@ -712,4 +739,16 @@ void ASHPlayer::ClearPlayerState()
 	}
 	
 }
+
+
+void ASHPlayer::Respawn()
+{
+	ASHGameMode* GameMode = Cast<ASHGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GameMode)
+	{
+        FVector RespawnLoc = GameMode->GetRespawnLocation();
+		SetActorLocation(RespawnLoc);
+	}
+}
+
 

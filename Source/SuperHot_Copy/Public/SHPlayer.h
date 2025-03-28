@@ -198,4 +198,26 @@ public:
 
 
 
+#pragma region 스테이지
+	UFUNCTION(BlueprintCallable, Category = "Respawn")
+	void Respawn();
+
+	UPROPERTY(EditAnywhere, Category = "Respawn")
+	FVector RespawnLocation;
+
+#pragma endregion 
+
+
+
+
+#pragma region 데미지테스트
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_TESTDamage;
+
+	void ApplyDamageToEnemy();
+#pragma endregion 
+
+
+
+
 };
