@@ -27,9 +27,6 @@ public:
 
 	void StageReLoad();
 
-private:
-	class ASHPlayer* player;
-
 	// 현재 스테이지 인덱스
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Stage")
 	int32 CurrentStage;
@@ -64,8 +61,9 @@ private:
 	UPROPERTY(EditAnywhere, Category="Stage")
 	TMap<int32, int32> StageEnemyCounts;
 	// 스테이지 별 적 개수 저장
+
+	class ASHPlayer* player;
 	
 	
 	
->>>>>>> origin/main
 };

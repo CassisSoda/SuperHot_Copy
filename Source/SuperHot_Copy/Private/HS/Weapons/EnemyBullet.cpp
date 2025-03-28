@@ -25,11 +25,6 @@ AEnemyBullet::AEnemyBullet()
 	CapsuleComp->SetCapsuleHalfHeight(4.f);
 	CapsuleComp->SetCapsuleRadius(2.f);
 
-	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetupAttachment(RootComponent);
-	MeshComp->SetRelativeLocation(FVector(7.55f, 0.f, -7.25f));
-
-
 	ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
 	if (TempMesh.Succeeded())
 	{
