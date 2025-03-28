@@ -2,6 +2,8 @@
 
 #include "HS/Weapons/EnemyBullet.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -11,7 +13,7 @@ AEnemyBullet::AEnemyBullet()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetRelativeLocationAndRotation(FVector(0.f), FRotator(90.f, 0.f, 180.f));
+	MeshComp->SetRelativeLocationAndRotation(FVector(0.f), FRotator(0.0f, 0.0f, 0.0f));
 	SetRootComponent(MeshComp);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
@@ -22,7 +24,9 @@ AEnemyBullet::AEnemyBullet()
 
 	MeshComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  
 	MeshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);
-
+	//// Niagara 컴포넌트 생성
+	//BulletTrail = CreateDefaultSubobject<UNiagaraSystem>(TEXT("BulletTrail"));
+	//BulletTrail->SetupAttachment(MeshComp);
 }
 
 // Called when the game starts or when spawned
@@ -36,7 +40,22 @@ void AEnemyBullet::BeginPlay()
 		EndPos = PlayerRef->GetActorLocation();
 		Destination = (EndPos - GetActorLocation()).GetSafeNormal();
 	}
-	
+
+	if (BulletTrailEffect)
+	{
+		FVector TrailOffset = FVector(-10.f, 0.f, 0.f);
+		FRotator TrailRotation = GetActorRotation();
+
+	//	UGameplayStatics::SpawnEmitterAtLocation(
+	//GetWorld(), BulletTrailEffect, GetActorLocation(), GetActorRotation(), true);
+
+		UGameplayStatics::SpawnEmitterAttached(
+			BulletTrailEffect, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset);
+//		UNiagaraFunctionLibrary::SpawnSystemAttached(
+//BulletTrailNia, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+//EAttachLocation::KeepRelativeOffset, true);
+	}
 }
 
 // Called every frame

@@ -25,4 +25,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)
 	bool bAttackPlay;
 
+	UFUNCTION(	)
+	void AnimNotify_AttackEnd();
+	
+
+
+	
 };

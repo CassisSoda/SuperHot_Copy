@@ -31,24 +31,6 @@ ASHGun::ASHGun()
 	FirePoint->SetupAttachment(WeaponMesh, TEXT("barrelSocket")); // "Muzzle" 소켓에 부착
 	FirePoint->SetRelativeLocationAndRotation(FVector(0.000305,-0.237799,-0), FRotator(0,-90,-90));
 
-
-	//// 총구 위치 설정
-	//SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//RootComponent = SceneComponent;
-//
-	//// 총 메쉬 설정
-	//WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
-	//WeaponMesh->SetupAttachment(RootComponent);
-//
-	//WeaponMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);  // Gun 채널
-	//
-	//static ConstructorHelpers::FObjectFinder<USkeletalMesh>GunMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Meshes/Jericho_941.Jericho_941'"));
-	//if (GunMesh.Succeeded())
-	//{
-	//	WeaponMesh->SetSkeletalMesh(GunMesh.Object);
-	//}
-//
-	//MuzzleOffset = FVector(0.000305f, -0.237799f, 0.f);
 }
 
 // Called when the game starts or when spawned

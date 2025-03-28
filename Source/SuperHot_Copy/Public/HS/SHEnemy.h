@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SHGun.h"
+#include "HS/Weapons/SHGun.h"
+#include "Engine/EngineTypes.h"
+#include "GeometryCollection/GeometryCollection.h"
 #include "GameFramework/Character.h"
 #include "SHEnemy.generated.h"
 
@@ -23,15 +25,19 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	
 
 private:
 	void Fire();
 	void RotateTowardsPlayer();
+	void AttachWeapon();
 
 	UPROPERTY(EditAnywhere)
 	float TimeBetweenShots = 1.0f;  // 블루프린트 변수 변환
 
 	FTimerHandle FireTimerHandle;
+	FTimerHandle DestructionTimerHandle;  // 파편 제거용 타이머 핸들
 
 	UPROPERTY()
 	APawn* PlayerRef;
@@ -39,25 +45,46 @@ private:
 	UPROPERTY(EditAnywhere)
 	bool bIsDead = false;
 
-	UPROPERTY(EditAnywhere, Category = "Components")
-	USceneComponent* FirePoint; // 발사 위치 지정
-
-	void AttachWeapon();
-
+public:
 	UPROPERTY(EditAnywhere, Category = "Components")
 	USkeletalMeshComponent* SkeletalMesh;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Components")
+	USceneComponent* FirePoint; // 발사 위치 지정
+	
 	UPROPERTY(EditAnywhere, Category = "Components")
 	UStaticMeshComponent* WeaponMesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AActor> GunClass;  // BP_Gun을 설정할 변수
-
-
-public:
 	
 	// 총기 객체를 저장할 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	ASHGun* Gun;  // Gun을 저장할 변수
+
+	//UPROPERTY(VisibleAnywhere, Category = "Components")
+	//UStaticMeshComponent* StaticMeshComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Geometry")
+	UGeometryCollectionComponent* GeometryCollectionComp;
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float Health = 1.0f;
+
+	UFUNCTION()
+	void OnDeath();
+	
+	
+	UFUNCTION()
+	void DestroyFragments();
+
+
+
+#pragma region 데미지 테스트
+	UFUNCTION()
+	void DebugTakeDamage();
+#pragma endregion
+
 
 };

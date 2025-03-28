@@ -3,6 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameFramework/Actor.h"
 #include "EnemyBullet.generated.h"
 
@@ -31,4 +34,13 @@ private:
 	FVector EndPos;        // 목표 위치
 	FVector Destination;   // 이동 방향
 	float Speed = 450.0f; // 속도
+	
+public:
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UParticleSystem* BulletTrailEffect;
+
+	//UPROPERTY(EditAnywhere, Category = "Effects")
+	//UNiagaraSystem* BulletTrailNia;
+
+	
 };
