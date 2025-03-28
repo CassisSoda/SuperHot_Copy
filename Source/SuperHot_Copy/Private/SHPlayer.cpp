@@ -15,6 +15,9 @@
 #include "Engine/OverlapResult.h"
 #include "HS/Weapons/SHGun.h"
 #include "Components/ChildActorComponent.h"
+#include "Crosshair.h"
+#include "SHGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -52,7 +55,7 @@ ASHPlayer::ASHPlayer()
 
 
 
-	#pragma region Input_Constructor
+	#pragma region InputAction_Constructor
 	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/MW/Input/IMC_Player.IMC_Player'"));
 
 	if (TempIMC.Succeeded())
@@ -107,8 +110,21 @@ ASHPlayer::ASHPlayer()
 		IA_LGrip = TempLGrip.Object;
 	}
 
+	ConstructorHelpers::FObjectFinder<UInputAction> TempRespawn(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/IA_RespawnPlayer.IA_RespawnPlayer'"));
+	if (TempRespawn.Succeeded())
+	{
+		IA_RespawnPlayer = TempRespawn.Object;
+	}
 
-#pragma endregion Input_Constructor
+	ConstructorHelpers::FObjectFinder<UInputAction> TempKill(TEXT("/Script/EnhancedInput.InputAction'/Game/MW/Input/IA_TestKill.IA_TestKill'"));
+	if (TempKill.Succeeded())
+	{
+		IA_TestKill = TempKill.Object;
+	}
+
+
+
+#pragma endregion InputAction_Constructor
 
 	
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempLeft(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left'"));
@@ -161,6 +177,8 @@ void ASHPlayer::BeginPlay()
 	LeftAnim = Cast<UHandAnimInstance>(LeftHandMesh->GetAnimInstance());
 
 	GetWorldSettings()->SetTimeDilation(0.005f);
+
+	shGameMode = Cast<ASHGameMode>(GetWorld()->GetAuthGameMode ());
 	
 }
 
@@ -215,7 +233,7 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
 
 		playerInput->BindAction(IA_RGrip, ETriggerEvent::Started, this, &ASHPlayer::TryGrab);
-		playerInput->BindAction(IA_RGrip, ETriggerEvent::Completed, this, &ASHPlayer::TryGrab);
+		playerInput->BindAction(IA_RGrip, ETriggerEvent::Completed, this, &ASHPlayer::TryRelease);
 		
 		#pragma region Punch_Bind
 		playerInput->BindAction(IA_BPunch, ETriggerEvent::Triggered, this, &ASHPlayer::OnBPressed);
@@ -238,7 +256,8 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		#pragma endregion Punch_Bind
 
 		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Started, this, &ASHPlayer::GunFire);
-		
+		playerInput->BindAction(IA_TestKill, ETriggerEvent::Started, this, &ASHPlayer::TestKill);
+		playerInput->BindAction(IA_RespawnPlayer, ETriggerEvent::Started, this, &ASHPlayer::ClearPlayerState);
 		
 		
 	}
@@ -247,6 +266,7 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ASHPlayer::Move(const struct FInputActionValue& InputValue)
 {
+	if(isDead) return;
 	FVector2D Scale = InputValue.Get<FVector2D>(); 
 
 	AddMovementInput (VRCamera->GetForwardVector (), Scale.X);
@@ -256,6 +276,7 @@ void ASHPlayer::Move(const struct FInputActionValue& InputValue)
 
 void ASHPlayer::Turn(const struct FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	FVector2D Scale = InputValue.Get<FVector2D>();
 	AddControllerPitchInput (Scale.Y);
 	AddControllerYawInput (Scale.X);
@@ -263,6 +284,7 @@ void ASHPlayer::Turn(const struct FInputActionValue& InputValue)
 
 void ASHPlayer::OnBPressed(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	if (!RightPressedKeys.Contains(EKeys::Q))
 	{
 		isBPressed = true;
@@ -273,6 +295,7 @@ void ASHPlayer::OnBPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	if (RightPressedKeys.Contains(EKeys::Q))
 	{
 		RightPressedKeys.RemoveSingle(EKeys::Q);
@@ -284,6 +307,7 @@ void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 {	
+	if (isDead) return;
 	RightAnim->TriggerAlpha = InputValue.Get <float>();
 	if (!RightPressedKeys.Contains(EKeys::E) && !isGrabbing)
 	{
@@ -295,6 +319,7 @@ void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	RightAnim->TriggerAlpha = 0.f;
 	if (RightPressedKeys.Contains(EKeys::E))
 	{
@@ -307,6 +332,7 @@ void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	RightAnim->GripAlpha = InputValue.Get <float>();
 	if (!RightPressedKeys.Contains(EKeys::C))
 	{
@@ -317,6 +343,8 @@ void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
+	
 	RightAnim->GripAlpha = 0.f;
 
 	if (RightPressedKeys.Contains(EKeys::C))
@@ -342,6 +370,7 @@ void ASHPlayer::ResetRightCombo()
 	isBPressed = false;
 	isRTriggerPressed = false;
 	isRGripPressed = false;
+	bRightPunch = false;
 
 	RightPressedKeys.Empty();
 
@@ -349,6 +378,8 @@ void ASHPlayer::ResetRightCombo()
 
 void ASHPlayer::OnYPressed(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
+	
 	if (!LeftPressedKeys.Contains(EKeys::I))
 	{
 		isYPressed = true;
@@ -358,6 +389,8 @@ void ASHPlayer::OnYPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
+	
 	if (LeftPressedKeys.Contains(EKeys::I))
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::I);
@@ -369,6 +402,7 @@ void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	LeftAnim->TriggerAlpha = InputValue.Get <float>();
 	if (!LeftPressedKeys.Contains(EKeys::P))
 	{
@@ -379,6 +413,7 @@ void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	LeftAnim->TriggerAlpha = 0.f;
 	if (LeftPressedKeys.Contains(EKeys::P))
 	{
@@ -391,6 +426,7 @@ void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
 {
+	if (isDead) return;
 	LeftAnim->GripAlpha = InputValue.Get <float>();
 	if (!LeftPressedKeys.Contains(EKeys::M))
 	{
@@ -401,6 +437,7 @@ void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
 
 void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 {
+	if (isDead) return;                                                     
 	LeftAnim->GripAlpha = 0.f;
 	if (LeftPressedKeys.Contains(EKeys::M))
 	{
@@ -422,16 +459,17 @@ void ASHPlayer::LeftPunch()
 
 void ASHPlayer::ResetLeftCombo()
 {
-	isBPressed = false;
-	isRTriggerPressed = false;
-	isRGripPressed = false;
+	isYPressed = false;
+	isLTriggerPressed = false;
+	isLGripPressed = false;
+	bLeftPunch = false;
 
-	RightPressedKeys.Empty();
+	LeftPressedKeys.Empty();
 }
 
 void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
 {
-	if(!isGrabbing)
+	if(!isGrabbing || isDead)
 		return;
 	Debug::Print (FString("Trigger!"));
 	
@@ -449,8 +487,16 @@ void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
 
 }
 
+void ASHPlayer::TestKill()
+{
+	playerHP = 0; 
+	isDead = true;
+	Debug::Print("Test Kill!!!");
+}
 void ASHPlayer::ShiftDilation()
 {
+	if(isDead) return;
+
 	if (isDelay)
 	{
 		GetWorldSettings()->SetTimeDilation(1.f);
@@ -458,7 +504,6 @@ void ASHPlayer::ShiftDilation()
 	else
 	{
 		GetWorldSettings()->SetTimeDilation(0.005f);
-		//CustomTimeDilation = 200.f;
 		
 	}
 	isDelay = !isDelay;
@@ -494,7 +539,7 @@ void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActo
 
 void ASHPlayer::TryGrab()
 {
-	if(isGrabbing)
+	if(isGrabbing || isDead)
 		return;
 	FVector HandPos = RightHand->GetComponentLocation ();
 	TArray<FOverlapResult> HitObjects;
@@ -534,8 +579,8 @@ void ASHPlayer::TryGrab()
 
 	if (isGrabbing && HitObjects[Nearest].GetActor()->GetActorNameOrLabel().Contains("SHGun"))
 	{
-		GrabObjectComp = HitObjects[Nearest].GetComponent ();
 		GrabObject = HitObjects[Nearest].GetActor();
+		GrabObjectComp = HitObjects[Nearest].GetComponent ();
 
 		GrabObjectComp->SetSimulatePhysics (false);
 		GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::NoCollision);
@@ -554,18 +599,36 @@ void ASHPlayer::GrabActor(AActor* actor)
 	if (RightHandMesh->DoesSocketExist(WeaponSocket))
 	{
 		actor->AttachToComponent (RightHandMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+
+		ACrosshair* ChildCross = Cast<ACrosshair>(CrosshairComp->GetChildActor ());
+		if (ChildCross)
+		{
+			ChildCross->SetChType (CrosshairType::crossType);
+		}
+
+		ASHGun* gun = Cast<ASHGun>(GrabObject);
+		if (gun)
+		{
+			gun->SetIsPlayerGrabbing ();
+		}
 	}
 }
 
 void ASHPlayer::TryRelease()
 {
-	if(!isGrabbing)
+	if(!isGrabbing || isDead)
 		return;
 
 	GrabObjectComp->DetachFromComponent (FDetachmentTransformRules::KeepWorldTransform);
 	GrabObjectComp->SetSimulatePhysics (true);
 	GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
 	isGrabbing = false;
+
+	ACrosshair* ChildCross = Cast<ACrosshair>(CrosshairComp->GetChildActor());
+	if (ChildCross)
+	{
+		ChildCross->SetChType(CrosshairType::dotType);
+	}
 }
 
 void ASHPlayer::DrawCrosshair()
@@ -597,5 +660,56 @@ void ASHPlayer::DrawCrosshair()
 	FVector DirectionCrosshair = CrosshairComp->GetComponentLocation () - VRCamera->GetComponentLocation ();
 	CrosshairComp->SetWorldRotation (FRotationMatrix::MakeFromX(DirectionCrosshair).Rotator());
 
+}
+
+float ASHPlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	playerHP = 0.f;
+	isDead = true;
+	
+	Debug::Print("Player Die!!!!!!");
+	Debug::Print("Press R to Restart!!!");
+	return playerHP;
+}
+
+void ASHPlayer::ClearPlayerState()
+{
+	if (!isDead) return;
+
+	if (isGrabbing && GrabObject && GrabObjectComp)
+	{	
+		GrabObjectComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GrabObjectComp->SetSimulatePhysics(true);
+		GrabObjectComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		ACrosshair* ChildCross = Cast<ACrosshair>(CrosshairComp->GetChildActor());
+		if (ChildCross)
+		{
+			ChildCross->SetChType(CrosshairType::dotType);
+		}
+
+		GrabObject = nullptr;
+		GrabObjectComp = nullptr;
+	}
+
+	#pragma region State_Reset
+	isDelay = true;
+	
+	ResetRightCombo ();
+	ResetLeftCombo ();
+	
+	isGrabbing = false;
+	isDead = false;
+
+	#pragma endregion State_Reset
+	
+	shGameMode = Cast<ASHGameMode>(GetWorld()->GetAuthGameMode());
+	Debug::NullPrint(shGameMode, "");
+	if (shGameMode)
+	{
+		Debug::Print("RESPAWN Request???");
+		shGameMode->StageReLoad();
+	}
+	
 }
 

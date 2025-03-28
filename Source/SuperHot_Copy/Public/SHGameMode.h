@@ -22,4 +22,15 @@ public:
 	ASHGameMode();
 
 	virtual void Tick(float DeltaTime) override;
+
+	int32 StageClear = 0;
+
+	FORCEINLINE void StageClearUpdate(){ StageClear++; };
+	void StageReLoad();
+
+private:
+	class ASHPlayer* player;
+	TArray<FVector> PlayerRespawnPoints;
+
+
 };

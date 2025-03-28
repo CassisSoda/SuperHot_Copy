@@ -3,6 +3,7 @@
 #include "HS/Weapons/EnemyBullet.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AEnemyBullet::AEnemyBullet()
@@ -10,18 +11,25 @@ AEnemyBullet::AEnemyBullet()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetRelativeLocationAndRotation(FVector(0.f), FRotator(90.f, 0.f, 180.f));
-	SetRootComponent(MeshComp);
+	CapsuleComp = CreateDefaultSubobject <UCapsuleComponent>(TEXT("CapsuleComp"));
+	SetRootComponent(CapsuleComp);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
+	CapsuleComp->SetCapsuleHalfHeight(4.f);
+	CapsuleComp->SetCapsuleRadius(2.f);
+
+	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComp->SetupAttachment(RootComponent);
+	MeshComp->SetRelativeLocation(FVector(7.55f, 0.f, -7.25f));
+
+
+	ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
 	if (TempMesh.Succeeded())
 	{
 		MeshComp = TempMesh.Object;
 	}
-
-	MeshComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  
-	MeshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);
+	//CapsuleComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  // Bullet 채널
+	//CapsuleComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);  // Gun 채널 무시
+	CapsuleComp->SetCollisionProfileName(TEXT("Bullet"));
 
 }
 

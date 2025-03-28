@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "shDebug.h"
 #include "Components/BoxComponent.h"
+#include "Bullet.h"
 
 // Sets default values
 ASHGun::ASHGun()
@@ -96,15 +97,35 @@ void ASHGun::Fire()
 	FVector PlayerLocation = PlayerRef->GetActorLocation();
 	FRotator MuzzleRotation = (PlayerLocation - MuzzleLocation).Rotation();
 
-	// 블루프린트 총알 스폰
-	AActor* SpawnedBullet = GetWorld()->SpawnActor<AActor>(BulletClass, MuzzleLocation, MuzzleRotation);
-	if (!SpawnedBullet)
+	if (isPlayerGrabbing)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to spawn bullet!"));
+		FActorSpawnParameters spawnParams;
+
+		if (PlayerRef)
+		{
+			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			spawnParams.bNoFail = true;
+			spawnParams.Owner = PlayerRef;
+		}
+		
+		//FRotator AimRotate = 
+		ABullet* FiredBullet = GetWorld ()->SpawnActor <ABullet>(PlayerBulletClass, MuzzleLocation, MuzzleLocation.Rotation(), spawnParams);
+		Debug::NullPrint(FiredBullet, "");
+		FiredBullet->SetVelocity (MuzzleLocation.ForwardVector);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Bullet spawned successfully at: %s"), *MuzzleLocation.ToString());
+		// 블루프린트 총알 스폰
+		AActor* SpawnedBullet = GetWorld()->SpawnActor<AActor>(BulletClass, MuzzleLocation, MuzzleRotation);
+		if (!SpawnedBullet)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn bullet!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Bullet spawned successfully at: %s"), *MuzzleLocation.ToString());
+		}
+
 	}
 
 	// 총구 이펙트 생성
@@ -145,4 +166,9 @@ void ASHGun::Thrown()
 void ASHGun::ResetFireCooldown()
 {
 	bCanFire = true;
+}
+
+void ASHGun::SetIsPlayerGrabbing()
+{
+	isPlayerGrabbing = !isPlayerGrabbing;
 }

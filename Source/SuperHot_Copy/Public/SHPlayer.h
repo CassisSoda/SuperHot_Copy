@@ -28,6 +28,8 @@ public:
 
 
 #pragma region Values
+	
+	float playerHP = 1.f;
 
 	bool isDelay = true;
 
@@ -44,6 +46,7 @@ public:
 	TArray<FKey> LeftPressedKeys;
 
 	bool isGrabbing = false;
+	bool isDead = false;
 
 
 #pragma endregion Values
@@ -89,6 +92,12 @@ public:
 	UPROPERTY()
 	class UHandAnimInstance* RightAnim;
 
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class UChildActorComponent* CrosshairComp;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	class ASHGameMode* shGameMode;
+
 #pragma endregion Default_Settings
 
 
@@ -128,9 +137,11 @@ public:
 
 	#pragma endregion Left_Btn
 
-	UPROPERTY(VisibleAnywhere, Category = "UI")
-	class UChildActorComponent* CrosshairComp;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_RespawnPlayer;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_TestKill;
 
 #pragma endregion InputAction
 
@@ -161,6 +172,9 @@ public:
 
 	void GunFire(const struct FInputActionValue& InputValue);
 
+	void TestKill();
+
+
 
 #pragma endregion InputActionFucntion
 
@@ -172,6 +186,13 @@ public:
 	void TryRelease();
 
 	void DrawCrosshair();
+
+	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	void ClearPlayerState();
+
+	//FORCEINLINE FRotator 
+
 
 
 

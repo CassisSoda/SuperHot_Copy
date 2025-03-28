@@ -46,6 +46,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
 	TArray <UStaticMeshComponent*> childrenComp;
 
+	void SetChType(CrosshairType t);
 	void ChangeType();
 	void DrawDot();
 	void DrawCross();

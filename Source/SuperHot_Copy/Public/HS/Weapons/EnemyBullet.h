@@ -25,6 +25,10 @@ public:
 
 
 private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Default")
+	class UCapsuleComponent* CapsuleComp;
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "EnemyBullet.h"
 #include "GameFramework/Actor.h"
+#include "Bullet.h"
 #include "SHGun.generated.h"
 
 UCLASS()
@@ -49,6 +50,9 @@ private:
 
 	// 쿨다운 리셋 함수
 	void ResetFireCooldown();
+
+	// 플레이어가 들고 있는지?
+	bool isPlayerGrabbing = false;
 	
 public:
 	// 총구 이펙트
@@ -76,9 +80,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Gun")
 	TSubclassOf<AEnemyBullet> BulletClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Gun")
+	TSubclassOf<ABullet> PlayerBulletClass;
+
 
 	UPROPERTY(EditDefaultsOnly)
 	class UBoxComponent* BoxComp;
+
+	//플레이어가 잡고 놓을 때 실행
+	void SetIsPlayerGrabbing();
 
 private:
 	APawn* PlayerRef;

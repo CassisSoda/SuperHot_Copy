@@ -51,7 +51,7 @@ void ACrosshair::BeginPlay()
 {
 	Super::BeginPlay();
 	GetComponents <UStaticMeshComponent>(childrenComp);
-	Debug::Print(FString::Printf(TEXT("%d"), childrenComp.Num()));
+	DrawDot ();
 	
 }
 
@@ -60,6 +60,11 @@ void ACrosshair::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACrosshair::SetChType(CrosshairType t)
+{
+	Chtype = t; ChangeType();
 }
 
 void ACrosshair::ChangeType()
@@ -92,17 +97,19 @@ void ACrosshair::DrawDot()
 
 void ACrosshair::DrawCross()
 {
-	//for (UStaticMeshComponent* child : RootComponent->GetChildrenComponents(false))
-	//{
-	//	if (child->GetName().Contains("Cross"))
-	//	{
-	//		child->SetHiddenInGame(false);
-	//	}
-	//	else
-	//	{
-	//		child->SetHiddenInGame(true);
-	//	}
-	//}
-	//UStaticMeshComponent* targetcomp = this->GetComponentByClass (UStaticMeshComponent::StaticClass ());
+	for (auto* child : childrenComp)
+	{
+		if (child)
+		{
+			if (child->GetName().Contains(TEXT("Cross")))
+			{
+				child->SetHiddenInGame(false);
+			}
+			else
+			{
+				child->SetHiddenInGame(true);
+			}
+		}
+	}
 }
 
