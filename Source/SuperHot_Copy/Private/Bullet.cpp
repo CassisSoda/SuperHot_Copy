@@ -9,6 +9,7 @@
 #include "shDebug.h"
 #include "Kismet/GameplayStatics.h"
 #include "HS/Enemy.h"
+#include "HS/SHEnemy.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -79,6 +80,14 @@ void ABullet::OnBulletOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		Debug::Print(player->GetInstigatorController()->GetName ());
 		UGameplayStatics::ApplyPointDamage (enemy, 1.f, SweepResult.Location, SweepResult, player->GetInstigatorController(), player, UDamageType::StaticClass ());
 		Debug::Print("Bullet Attack!!!!");
+	}
+
+	// 적이 맞았는지 확인
+	ASHEnemy* SHEnemy = Cast<ASHEnemy>(OtherActor);
+	if (SHEnemy)
+	{
+		SHEnemy->OnDeath(); // 적을 파편화
+		Destroy(); // 총알 제거
 	}
 }
 

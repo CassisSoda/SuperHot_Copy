@@ -6,6 +6,8 @@
 #include "NavigationSystem.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GeometryCollection/GeometryCollectionActor.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "SuperHot_Copy/Public/HS/Enemy.h"
@@ -71,18 +73,6 @@ void UEnemyFSM::IdleState()
 		currentTime = 0.0f;
 		anim->AnimState = mState;
 	}
-//	if (!target || !me) return;
-//
-//	// 플레이어와의 거리 계산
-//	float Distance = FVector::Dist(me->GetActorLocation(), target->GetActorLocation());
-//
-//	// 만약 플레이어가 감지 범위 안으로 들어오면
-//	if (Distance < DetectRange)
-//	{
-//		mState = EEnemyState::Chase;
-//		anim->AnimState = mState;
-//		return;
-//	}
 }
 
 void UEnemyFSM::ChaseState()
@@ -125,31 +115,6 @@ void UEnemyFSM::ChaseState()
 		// 공격 상태 전환시 대기 시간 없이 바로 플레이가 되도록
 		currentTime = attackDelayTime;
 	}
-//	if (!target || !ai || !me) return;
-//
-//	FVector PlayerLocation = target->GetActorLocation();
-//	FVector EnemyLocation = me->GetActorLocation();
-//	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());
-//
-//	if (distance <= AttackRange)
-//	{
-//		mState = EEnemyState::Attack;
-//		anim->AnimState = mState;
-//		return;
-//	}
-//	
-//	me->GetCharacterMovement()->MaxWalkSpeed = Speed;	// 속도 조절
-//	
-//	FVector Direction = (PlayerLocation - EnemyLocation).GetSafeNormal(); // 정규화된 방향 벡터
-//
-//	FVector Destination = EnemyLocation + Direction * 100.0f;
-//	
-//	FNavLocation NavLocation;
-//	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
-//	if (NavSystem && NavSystem->ProjectPointToNavigation(Destination, NavLocation))
-//	{
-//		ai->MoveToLocation(NavLocation.Location);
-//	}
 }
 
 
@@ -161,6 +126,8 @@ void UEnemyFSM::AttackState()
 	{
 		currentTime = 0.0f;
 		anim->bAttackPlay = true;
+		// 공격 시작 시 콜리전 활성화
+		me->EnableAttackCollision();
 	}
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());
 	if ( distance > AttackRange )
@@ -169,38 +136,6 @@ void UEnemyFSM::AttackState()
 		mState = EEnemyState::Chase;
 		anim->AnimState = mState;
 	}	
-//	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());
-//	anim->AnimState = EEnemyState::Attack;
-//	
-//	currentTime += GetWorld()->DeltaTimeSeconds;
-//	if (currentTime >= attackDelayTime)
-//	{
-//		if (distance > AttackRange) // 플레이어가 멀어지면 추격 상태로 복귀
-//		{
-//			mState = EEnemyState::Chase;
-//		}
-//		else
-//		{
-//			mState = EEnemyState::Idle; // 공격 후 잠시 대기
-//		}
-//
-//		anim->AnimState = mState;
-//		//anim->bAttackPlay = false; // 공격 애니메이션 종료
-//		currentTime = 0.0f; // 타이머 초기화
-//	}
-////	if (!target || !Weapon) return;
-////
-////	me->PlayAnimMontage(anim->EnemyMontage, 1.0f, TEXT("Attack"));
-////	Weapon->Fire();
-////
-////	float Distance = FVector::Dist(me->GetActorLocation(), target->GetActorLocation());
-////	if (currentTime >= attackDelayTime)
-////	{
-////		if (Distance > 300.0f)
-////		{
-////			mState = EEnemyState::Chase;
-////		}
-////	}
 }
 
 void UEnemyFSM::DamageState()
@@ -216,7 +151,28 @@ void UEnemyFSM::DamageState()
 
 void UEnemyFSM::DieState()
 {
-	me->Destroy();
+	// 이미 죽었다면 실행 안 함
+	if (bIsDead) return;
+	bIsDead = true;  // 사망 상태 플래그 설정
+
+	//// SkeletalMesh 숨기기
+	//GetMesh()->SetVisibility(false);
+	//GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//
+	//if (GeometryCollectionComp)
+	//{
+	//	GeometryCollectionComp->SetVisibility(true);
+	//	GeometryCollectionComp->SetSimulatePhysics(true);
+//
+	//	GeometryCollectionComp->SetEnableGravity(true);
+	//	GeometryCollectionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("GeometryCollectionComp is NULL!"));
+	//}
+	// 일정 시간 후 파편 제거
+	//GetWorld()->GetTimerManager().SetTimer(DestructionTimerHandle, this, &ASHEnemy::DestroyFragments, 5.0f, false);
 }
 
 void UEnemyFSM::onDamageProcess()		// 플레이어에서 호출
@@ -238,6 +194,8 @@ void UEnemyFSM::onDamageProcess()		// 플레이어에서 호출
 void UEnemyFSM::OnAttackEnd()
 {
 	anim->bAttackPlay = false;
+	// 공격 애니메이션 종료 후 콜리전 비활성화
+	me->DisableAttackCollision();
 }
 
 bool UEnemyFSM::GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest)

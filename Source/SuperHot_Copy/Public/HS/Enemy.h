@@ -56,5 +56,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	AWeaponBase* CurrentWeapon;
 	
-	
+public:
+	// 공격용 콜리전
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack")
+	class USphereComponent* AttackCollision;
+
+	// 공격 히트 판정 함수
+	UFUNCTION()
+	void OnAttackHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	// 공격 활성화 및 비활성화 함수
+	void EnableAttackCollision();
+	void DisableAttackCollision();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Geometry")
+	UGeometryCollectionComponent* GeometryCollectionComp;
 };

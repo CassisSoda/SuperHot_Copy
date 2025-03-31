@@ -28,7 +28,7 @@ void AGun::Fire_Implementation()
 	SpawnParams.Instigator = GetInstigator(); // 플레이어가 총알을 발사했음을 설정
 
 	ABullet* SpawnedBullet = GetWorld()->SpawnActor<ABullet>(BulletClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-
+	
 	if (SpawnedBullet)
 	{
 		SpawnedBullet->SetOwner(this);

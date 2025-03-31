@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HS/Weapons/SHGun.h"
 #include "Engine/EngineTypes.h"
 #include "GeometryCollection/GeometryCollection.h"
 #include "GameFramework/Character.h"
+#include "Weapons/EnemyGun.h"
 #include "SHEnemy.generated.h"
 
 UCLASS()
@@ -60,14 +60,10 @@ public:
 	
 	// 총기 객체를 저장할 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	ASHGun* Gun;  // Gun을 저장할 변수
-
-	//UPROPERTY(VisibleAnywhere, Category = "Components")
-	//UStaticMeshComponent* StaticMeshComp;
+	AEnemyGun* Gun;  // Gun을 저장할 변수
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Geometry")
 	UGeometryCollectionComponent* GeometryCollectionComp;
-	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float Health = 1.0f;
@@ -75,7 +71,7 @@ public:
 	UFUNCTION()
 	void OnDeath();
 	
-	
+
 	UFUNCTION()
 	void DestroyFragments();
 

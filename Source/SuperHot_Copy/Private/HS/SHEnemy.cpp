@@ -9,6 +9,7 @@
 #include "GeometryCollection/GeometryCollection.h"
 #include "GeometryCollection/GeometryCollectionExternalRenderInterface.h"
 #include "HS/Enemy.h"
+#include "HS/Weapons/EnemyGun.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -24,9 +25,6 @@ ASHEnemy::ASHEnemy()
 		GetMesh()->SetRelativeLocationAndRotation(FVector(0,0,-88), FRotator(0,-90,0));
 	}
 	
-	//SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
-	//SkeletalMesh->SetupAttachment(RootComponent);
-		
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetRelativeLocation(FVector(-2.860987,3.420509,-6.287745));
 	WeaponMesh->SetRelativeRotation(FRotator(3.096127,86.838675,17.192416));
@@ -38,8 +36,7 @@ ASHEnemy::ASHEnemy()
 	GeometryCollectionComp->SetupAttachment(RootComponent);
 	GeometryCollectionComp->SetVisibility(false); // 기본적으로 숨김
 	GeometryCollectionComp->SetSimulatePhysics(false);
-	//GeometryCollectionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ConstructorHelpers::FObjectFinder<UGeometryCollection>GeoTmp(TEXT("/Script/Engine.SkeletalMesh'/Game/HS/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
+	ConstructorHelpers::FObjectFinder<UGeometryCollection>GeoTmp(TEXT("/Script/GeometryCollectionEngine.GeometryCollection'/Game/HS/Fracture/GC_SH_Enemy.GC_SH_Enemy'"));
 	if (GeoTmp.Succeeded())
 	{
 		GeometryCollectionComp->SetRestCollection(GeoTmp.Object);
@@ -113,15 +110,22 @@ void ASHEnemy::AttachWeapon()
 	if (GunClass)
 	{
 		// BP_Gun 인스턴스 생성 (위치 지정 추가)
-		Gun = GetWorld()->SpawnActor<ASHGun>(GunClass, FVector::ZeroVector, FRotator::ZeroRotator);
+		Gun = GetWorld()->SpawnActor<AEnemyGun>(GunClass, FVector::ZeroVector, FRotator::ZeroRotator);
 		if (Gun)
 		{
-			// 적(Enemy)의 SkeletalMesh에 있는 "hand_rSocket"에 부착
+
+			// Enemy의 SkeletalMesh에 있는 "hand_rSocket"에 부착
 			Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket"));
 
+			UE_LOG(LogTemp, Warning, TEXT("Gun spawned successfully!"));
+			
 			// 총의 소유자를 Enemy로 설정
 			Gun->SetOwner(this);
 		}
+		        else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Failed to spawn Gun!"));
+                }
 	}
 }
 
@@ -135,10 +139,10 @@ void ASHEnemy::OnDeath()
 	if (bIsDead) return;
 	bIsDead = true;  // 사망 상태 플래그 설정
 
-	// 스켈레탈 메시 숨기기 및 충돌 제거
-	GeometryCollectionComp->SetVisibility(false);
-	GeometryCollectionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	// SkeletalMesh 숨기기
+	GetMesh()->SetVisibility(false);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	if (GeometryCollectionComp)
 	{
 		GeometryCollectionComp->SetVisibility(true);
@@ -147,6 +151,10 @@ void ASHEnemy::OnDeath()
 		GeometryCollectionComp->SetEnableGravity(true);
 		GeometryCollectionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("GeometryCollectionComp is NULL!"));
+	}
 	// 일정 시간 후 파편 제거
 	GetWorld()->GetTimerManager().SetTimer(DestructionTimerHandle, this, &ASHEnemy::DestroyFragments, 5.0f, false);
 }
@@ -154,6 +162,8 @@ void ASHEnemy::OnDeath()
 
 float ASHEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
+	UE_LOG(LogTemp, Warning, TEXT("TakeDamage! DamageAmount: %f"), DamageAmount);
+
 	if (bIsDead) return 0.0f; // 이미 죽었으면 처리 안 함
 
 	// 즉사
@@ -168,18 +178,16 @@ float ASHEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 void ASHEnemy::DestroyFragments()
 {
-		if (GeometryCollectionComp) // 파편 존재하면
-		{
-			GeometryCollectionComp->DestroyComponent(); //제거
-		}
-		Destroy(); // 적 액터 제거
+	if (GeometryCollectionComp) // 파편 존재하면
+	{
+		GeometryCollectionComp->DestroyComponent(); //제거
+	}
+	Destroy(); // 적 액터 제거
 }
 
 void ASHEnemy::DebugTakeDamage()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy took damage!"));
-    
-	// 50의 데미지 적용 (한 방에 죽게 하려면 100 이상 설정)
 	TakeDamage(100.0f, FDamageEvent(), nullptr, nullptr);
 }
 

@@ -4,6 +4,7 @@
 
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "SHPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 
@@ -16,30 +17,23 @@ AEnemyBullet::AEnemyBullet()
 
 	CapsuleComp = CreateDefaultSubobject <UCapsuleComponent>(TEXT("CapsuleComp"));
 	SetRootComponent(CapsuleComp);
-
-	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetupAttachment(RootComponent);
-	MeshComp->SetRelativeLocation(FVector(7.55f, 0.f, -7.25f));
-
-
+	
 	CapsuleComp->SetCapsuleHalfHeight(4.f);
 	CapsuleComp->SetCapsuleRadius(2.f);
+
+	MeshComp = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MeshComp"));
+		MeshComp->SetupAttachment(RootComponent);
+		MeshComp->SetRelativeLocation(FVector(7.55f, 0.f, -7.25f));
 
 	ConstructorHelpers::FObjectFinder<UStaticMeshComponent> TempMesh(TEXT("/Script/Engine.StaticMesh'/Game/MW/Assets/Bullet/SM_Bullet.SM_Bullet'"));
 	if (TempMesh.Succeeded())
 	{
 		MeshComp = TempMesh.Object;
-	}
+	}	
 
 	//CapsuleComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  // Bullet 채널
-	//CapsuleComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECR_Ignore);  // Gun 채널 무시
-	CapsuleComp->SetCollisionProfileName(TEXT("Bullet"));
-
-
-	//// Niagara 컴포넌트 생성
-	//BulletTrail = CreateDefaultSubobject<UNiagaraSystem>(TEXT("BulletTrail"));
-	//BulletTrail->SetupAttachment(MeshComp);
-
+	CapsuleComp->SetCollisionProfileName(TEXT("EnemyBullet"));
+	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyBullet::OnHit);
 }
 
 // Called when the game starts or when spawned
@@ -59,23 +53,31 @@ void AEnemyBullet::BeginPlay()
 		FVector TrailOffset = FVector(-10.f, 0.f, 0.f);
 		FRotator TrailRotation = GetActorRotation();
 
-	//	UGameplayStatics::SpawnEmitterAtLocation(
-	//GetWorld(), BulletTrailEffect, GetActorLocation(), GetActorRotation(), true);
-
-		UGameplayStatics::SpawnEmitterAttached(
+		UGameplayStatics::SpawnEmitterAttached(	
 			BulletTrailEffect, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
 			EAttachLocation::KeepRelativeOffset);
-//		UNiagaraFunctionLibrary::SpawnSystemAttached(
-//BulletTrailNia, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
-//EAttachLocation::KeepRelativeOffset, true);
+
 	}
 }
 
 // Called every frame
 void AEnemyBullet::Tick(float DeltaTime)
-{
+{	
 	Super::Tick(DeltaTime);
 	SetActorLocation(GetActorLocation() + Destination * Speed * DeltaTime);
 
+}
+
+void AEnemyBullet::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor) return;
+
+	ASHPlayer* Player = Cast<ASHPlayer>(OtherActor);
+	if (Player)
+	{
+		UGameplayStatics::ApplyDamage(Player, 50.0f, GetInstigatorController(), this, UDamageType::StaticClass());
+		Destroy();
+	}
 }
 
