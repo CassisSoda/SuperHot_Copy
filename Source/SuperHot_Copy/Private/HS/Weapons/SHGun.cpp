@@ -13,14 +13,10 @@ ASHGun::ASHGun()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	
-	// 루트 컴포넌트 설정
-	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	BoxComp = CreateDefaultSubobject <UBoxComponent>("BoxComp");
 	BoxComp->SetBoxExtent(FVector(3.f, 24.f, 15.f));
 	SetRootComponent(BoxComp);
-
 
 	// 총기 메쉬 설정
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
@@ -56,20 +52,17 @@ void ASHGun::Tick(float DeltaTime)
 
 }
 
-void ASHGun::Fire()
+void ASHGun::Fire()	
 {
 	if (!bCanFire) return;
 
 	// BulletClass 확인 로그 추가
 	if (!BulletClass)
 	{
-		UE_LOG(LogTemp, Error, TEXT("BulletClass is NULL!"));
 		return;
 	}
 	if (!PlayerRef) 
 	{
-		
-		UE_LOG(LogTemp, Error, TEXT("PlayerRef is NULL! Cannot determine firing direction."));
 		return;
 	}
 	bCanFire = false;
@@ -78,7 +71,7 @@ void ASHGun::Fire()
 	FVector MuzzleLocation = FirePoint->GetComponentLocation(); 
 	FVector PlayerLocation = PlayerRef->GetActorLocation();
 	FRotator MuzzleRotation = (PlayerLocation - MuzzleLocation).Rotation();
-
+	
 	if (isPlayerGrabbing)
 	{
 		FActorSpawnParameters spawnParams;
@@ -89,6 +82,8 @@ void ASHGun::Fire()
 			spawnParams.bNoFail = true;
 			spawnParams.Owner = PlayerRef;
 		}
+		UE_LOG(LogTemp, Warning, TEXT("[Fire] Player is holding the gun! Spawning PlayerBulletClass."));
+
 		
 		//FRotator AimRotate = 
 		ABullet* FiredBullet = GetWorld ()->SpawnActor <ABullet>(PlayerBulletClass, MuzzleLocation, MuzzleLocation.Rotation(), spawnParams);
@@ -107,7 +102,6 @@ void ASHGun::Fire()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Bullet spawned successfully at: %s"), *MuzzleLocation.ToString());
 		}
-
 	}
 
 	// 총구 이펙트 생성

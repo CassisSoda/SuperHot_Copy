@@ -98,7 +98,8 @@ public:
 
 
 private:
-	FTimerHandle RetryMoveHandle;
+	UPROPERTY(EditAnywhere)
+	bool bIsDead = false;
 
 
 };

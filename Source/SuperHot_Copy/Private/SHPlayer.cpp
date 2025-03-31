@@ -500,7 +500,13 @@ void ASHPlayer::TestKill()
 	playerHP = 0; 
 	isDead = true;
 	Debug::Print("Test Kill!!!");
+	ASHGameMode* GameMode = Cast<ASHGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		GameMode->PlayerDeath();  // 게임 모드의 리스폰 함수 호출
+	}
 }
+
 void ASHPlayer::ShiftDilation()
 {
 	if(isDead) return;

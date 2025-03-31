@@ -56,6 +56,10 @@ public:
 	// 페이드 효과
 	UFUNCTION(BlueprintCallable, Category="Stage")
 	void FadeInOut();
+	
+	UFUNCTION()
+	void PlayerDeath();
+	void OnStageUnloaded();
 
 private:
 	UPROPERTY(EditAnywhere, Category="Stage")
@@ -63,7 +67,7 @@ private:
 	// 스테이지 별 적 개수 저장
 
 	class ASHPlayer* player;
-	
+
 	
 	
 };
