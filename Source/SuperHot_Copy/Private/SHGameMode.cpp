@@ -3,8 +3,8 @@
 
 #include "SHGameMode.h"
 #include "SHPlayer.h"
-#include "../shDebug.h"
 #include "Kismet/GameplayStatics.h"
+#include "shDebug.h"
 
 void ASHGameMode::BeginPlay()
 {

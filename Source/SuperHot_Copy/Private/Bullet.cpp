@@ -68,14 +68,16 @@ void ABullet::SetVelocity(FVector value)
 
 void ABullet::OnBulletOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//enemy = Cast<AEnemy>(OtherActor);
+	enemy = Cast<AEnemy>(OtherActor);
+	Debug::NullPrint(enemy,"");
+	//Debug::NullPrint(OtherActor,"");
 
-	if(OtherActor)
+	if(enemy)
 	{
 		Debug::Print (OtherActor->GetName ());
 		UE_LOG(LogTemp, Warning, TEXT("Location: %.2f, %.2f, %.2f"), SweepResult.Location.X, SweepResult.Location.Y, SweepResult.Location.Z);
 		Debug::Print(player->GetInstigatorController()->GetName ());
-		UGameplayStatics::ApplyPointDamage (OtherActor, 1.f, SweepResult.Location, SweepResult, player->GetInstigatorController(), player, UDamageType::StaticClass ());
+		UGameplayStatics::ApplyPointDamage (enemy, 1.f, SweepResult.Location, SweepResult, player->GetInstigatorController(), player, UDamageType::StaticClass ());
 		Debug::Print("Bullet Attack!!!!");
 	}
 }

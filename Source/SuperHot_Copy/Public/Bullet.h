@@ -41,7 +41,7 @@ public:
 	float Speed = 1500.f;
 
 	class ASHPlayer* player;
-	//class AEnemy* enemy;
+	class AEnemy* enemy;
 
 	void SetVelocity(FVector value);
 

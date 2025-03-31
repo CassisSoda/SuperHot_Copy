@@ -23,6 +23,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "HS/SHEnemy.h"
 #include "Kismet/GameplayStatics.h"
+#include "HS/Enemy.h"
 
 
 // Sets default values
@@ -163,11 +164,11 @@ ASHPlayer::ASHPlayer()
 	RightHandMesh->SetRelativeRotation (FRotator(85.f, 0.f, 90.f));
 
 	LeftHandCollision->SetRelativeLocation (FVector(7.5f, 0.f, 0.f));
-	LeftHandCollision->SetRelativeScale3D (FVector(0.4f));
+	LeftHandCollision->SetRelativeScale3D (FVector(0.5f));
 	LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
 
 	RightHandCollision->SetRelativeLocation(FVector(7.5f, 0.f, 0.f));
-	RightHandCollision->SetRelativeScale3D (FVector(0.4f));
+	RightHandCollision->SetRelativeScale3D (FVector(0.5f));
 	RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
 
 
@@ -184,6 +185,9 @@ void ASHPlayer::BeginPlay()
 	GetWorldSettings()->SetTimeDilation(0.005f);
 
 	shGameMode = Cast<ASHGameMode>(GetWorld()->GetAuthGameMode ());
+
+	RightHandCollision->OnComponentBeginOverlap.AddDynamic(this, &ASHPlayer::OnEnemyOverlaped);
+	LeftHandCollision->OnComponentBeginOverlap.AddDynamic(this, &ASHPlayer::OnEnemyOverlaped);
 	
 }
 
@@ -209,6 +213,8 @@ void ASHPlayer::Tick(float DeltaTime)
 	
 	if(isGrabbing)
 		RightAnim->GripAlpha = 1.f;
+
+	Grabbing ();
 	
 
 }
@@ -309,6 +315,8 @@ void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 		RightPressedKeys.RemoveSingle(EKeys::Q);
 		isBPressed = false;
 		isDelay = false;
+		if(bRightPunch)
+			bRightPunch = false;
 	}
 	ShiftDilation ();	
 }
@@ -323,6 +331,7 @@ void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 		RightPressedKeys.Add(EKeys::E);
 
 	}
+	
 }
 
 void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
@@ -334,6 +343,8 @@ void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 		RightPressedKeys.RemoveSingle(EKeys::E);
 		isRTriggerPressed = false;
 		isDelay = false;
+		if (bRightPunch)
+			bRightPunch = false;
 	}
 	ShiftDilation ();
 }
@@ -360,6 +371,8 @@ void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 		RightPressedKeys.RemoveSingle(EKeys::C);
 		isRGripPressed = false;
 		isDelay = false;
+		if (bRightPunch)
+			bRightPunch = false;
 	}
 	ShiftDilation ();	
 }
@@ -367,10 +380,12 @@ void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 void ASHPlayer::RightPunch()
 {
 	isDelay = true;
+	bRightPunch = true;
+	RightHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ShiftDilation();
-	Debug::Print ("RightPunch");
+	//Debug::Print ("RightPunch");
 	
-	UE_LOG (LogTemp, Log, TEXT("RightPunch"));
+	//UE_LOG (LogTemp, Log, TEXT("RightPunch"));
 }
 
 void ASHPlayer::ResetRightCombo()
@@ -404,6 +419,8 @@ void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
 		LeftPressedKeys.RemoveSingle(EKeys::I);
 		isYPressed = false;
 		isDelay = false;
+		if (bLeftPunch)
+			bLeftPunch = false;
 	}
 	ShiftDilation();
 }
@@ -428,6 +445,8 @@ void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 		LeftPressedKeys.RemoveSingle(EKeys::P);
 		isLTriggerPressed = false;
 		isDelay = false;
+		if (bLeftPunch)
+			bLeftPunch = false;
 	}
 	ShiftDilation();
 }
@@ -452,6 +471,8 @@ void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 		LeftPressedKeys.RemoveSingle(EKeys::M);
 		isLGripPressed = false;
 		isDelay = false;
+		if (bLeftPunch)
+			bLeftPunch = false;
 	}
 	ShiftDilation();
 }
@@ -460,9 +481,11 @@ void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 void ASHPlayer::LeftPunch()
 {
 	isDelay = true;
+	bLeftPunch = true;
+	LeftHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ShiftDilation();
-	Debug::Print("LeftPunch");
-	UE_LOG(LogTemp, Log, TEXT("LeftPunch"));
+	//Debug::Print("LeftPunch");
+	//UE_LOG(LogTemp, Log, TEXT("LeftPunch"));
 }
 
 void ASHPlayer::ResetLeftCombo()
@@ -501,7 +524,7 @@ void ASHPlayer::TestKill()
 	isDead = true;
 	Debug::Print("Test Kill!!!");
 }
-void ASHPlayer::ShiftDilation()
+void  ASHPlayer::ShiftDilation()
 {
 	if(isDead) return;
 
@@ -518,30 +541,43 @@ void ASHPlayer::ShiftDilation()
 
 	if (bRightPunch)
 	{
-		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
 		RightAnim->isPunching = true;
+		RightHandCollision->SetHiddenInGame(false);
 	}
 	else
 	{
 		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
 		RightAnim->isPunching = false;
+		RightHandCollision->SetHiddenInGame(true);
 	}
 
 	if (bLeftPunch)
 	{
-		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryOnly);
+		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
 		LeftAnim->isPunching = true;
+		LeftHandCollision->SetHiddenInGame(false);
 	}
 	else
 	{
 		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
 		LeftAnim->isPunching = false;
+		LeftHandCollision->SetHiddenInGame(true);
 	}
 }
 
 //TODO
 void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	Debug::Print("Overlap Detected");
+	//UE_LOG (LogTemp, Log, )
+	enemy = Cast<AEnemy>(OtherActor);
+	if (enemy)
+	{
+		Debug::Print("Punch!!!");
+		UGameplayStatics::ApplyDamage(enemy, 1.f, GetWorld()->GetFirstPlayerController (), this, UDamageType::StaticClass());
+
+	}
 	
 }
 
@@ -593,7 +629,10 @@ void ASHPlayer::TryGrab()
 		GrabObjectComp->SetSimulatePhysics (false);
 		GrabObjectComp->SetCollisionEnabled (ECollisionEnabled::NoCollision);
 		GrabActor (GrabObject);
-		//GrabActor (HitObjects[Nearest].GetActor ());
+		
+		PrePos = RightHand-> GetComponentLocation ();
+		PreRot = RightHand-> GetComponentQuat ();
+
 		isDelay = true;
 		ShiftDilation ();
 		
@@ -621,6 +660,24 @@ void ASHPlayer::GrabActor(AActor* actor)
 		}
 	}
 }
+
+void ASHPlayer::Grabbing()
+{
+	if(!isGrabbing) return;
+
+	//던질 방향
+	ThrowDirection = RightHand->GetComponentLocation () - PrePos;
+	// angle1 - angle2
+	DeltaRotation = RightHand->GetComponentQuat () * PreRot.Inverse ();
+
+	PrePos = RightHand->GetComponentLocation();
+	PreRot = RightHand->GetComponentQuat();	
+
+
+
+
+}
+
 #pragma region hs추가
 void ASHPlayer::ApplyDamageToEnemy()
 {
@@ -656,6 +713,21 @@ void ASHPlayer::TryRelease()
 	{
 		ChildCross->SetChType(CrosshairType::dotType);
 	}
+
+	//던지기
+	GrabObjectComp->AddImpulse (ThrowDirection* ThrowPower, NAME_None, true);
+
+	float Angle;
+	FVector Axis;
+	DeltaRotation.ToAxisAndAngle (Axis, Angle);
+	FVector AngularVelocity = ( 1.f / GetWorld ()-> DeltaTimeSeconds) * Angle  * Axis;
+
+	GrabObjectComp->AddTorqueInRadians (AngularVelocity * ToquePower);
+
+
+	GrabObjectComp = nullptr;
+	GrabObject = nullptr;
+
 }
 
 void ASHPlayer::DrawCrosshair()

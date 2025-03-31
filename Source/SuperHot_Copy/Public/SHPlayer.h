@@ -48,6 +48,17 @@ public:
 	bool isGrabbing = false;
 	bool isDead = false;
 
+	FVector PrePos;
+	FQuat PreRot;
+
+	UPROPERTY(EditAnywhere, Category = "Grab")
+	float ThrowPower = 500.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Grab")
+	float ToquePower = 500.f;
+
+	class AEnemy* enemy;
+
 
 #pragma endregion Values
 
@@ -179,10 +190,12 @@ public:
 #pragma endregion InputActionFucntion
 
 	void ShiftDilation();
+	UFUNCTION()
 	void OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void TryGrab();
 	void GrabActor(AActor* actor);
+	void Grabbing();
 	void TryRelease();
 
 	void DrawCrosshair();
@@ -193,9 +206,8 @@ public:
 
 	//FORCEINLINE FRotator 
 
-
-
-
+	FVector	ThrowDirection;
+	FQuat DeltaRotation;
 
 
 #pragma region 스테이지
@@ -206,8 +218,6 @@ public:
 	FVector RespawnLocation;
 
 #pragma endregion 
-
-
 
 
 #pragma region 데미지테스트
