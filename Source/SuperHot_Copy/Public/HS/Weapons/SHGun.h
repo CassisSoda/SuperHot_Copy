@@ -53,6 +53,8 @@ private:
 
 	// 플레이어가 들고 있는지?
 	bool isPlayerGrabbing = false;
+
+	int32 Magazine = 5;
 	
 public:
 	// 총구 이펙트
