@@ -29,11 +29,15 @@ AEnemyBullet::AEnemyBullet()
 	if (TempMesh.Succeeded())
 	{
 		MeshComp = TempMesh.Object;
-	}	
+	}
 
-	//CapsuleComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);  // Bullet 채널
+	// 충돌 프로필을 Overlap으로 설정 (물리적 충격 제거)
 	CapsuleComp->SetCollisionProfileName(TEXT("EnemyBullet"));
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 물리 충돌 비활성화, 쿼리만 활성화
+	CapsuleComp->SetGenerateOverlapEvents(true); // 오버랩 이벤트 발생 보장
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 에너미와 오버랩만 발생
 	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyBullet::OnHit);
+
 }
 
 // Called when the game starts or when spawned
@@ -72,6 +76,9 @@ void AEnemyBullet::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Other
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor) return;
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Bullet hit: %s"), *OtherActor->GetName()));
+	UE_LOG(LogTemp, Warning, TEXT("Bullet hit: %s"), *OtherActor->GetName());
 
 	ASHPlayer* Player = Cast<ASHPlayer>(OtherActor);
 	if (Player)

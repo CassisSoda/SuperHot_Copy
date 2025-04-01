@@ -8,6 +8,7 @@
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "GeometryCollection/GeometryCollection.h"
 #include "GeometryCollection/GeometryCollectionExternalRenderInterface.h"
+#include "Components/PrimitiveComponent.h"
 #include "HS/Enemy.h"
 #include "HS/Weapons/EnemyGun.h"
 #include "Kismet/GameplayStatics.h"
@@ -31,15 +32,27 @@ ASHEnemy::ASHEnemy()
 	
 	FirePoint = CreateDefaultSubobject<USceneComponent>(TEXT("FirePoint"));
 	FirePoint->SetupAttachment(GetMesh(), TEXT("barrelSocket")); // 손 소켓에 부착
-	
+
 	GeometryCollectionComp = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollectionComp"));
 	GeometryCollectionComp->SetupAttachment(RootComponent);
-	GeometryCollectionComp->SetVisibility(false); // 기본적으로 숨김
+	GeometryCollectionComp->SetVisibility(false);
 	GeometryCollectionComp->SetSimulatePhysics(false);
-	ConstructorHelpers::FObjectFinder<UGeometryCollection>GeoTmp(TEXT("/Script/GeometryCollectionEngine.GeometryCollection'/Game/HS/Fracture/GC_SH_Enemy.GC_SH_Enemy'"));
+	ConstructorHelpers::FObjectFinder<UGeometryCollection> GeoTmp(TEXT("/Script/GeometryCollectionEngine.GeometryCollection'/Game/HS/Fracture/GC_SH_Enemy.GC_SH_Enemy'"));
 	if (GeoTmp.Succeeded())
 	{
 		GeometryCollectionComp->SetRestCollection(GeoTmp.Object);
+		UE_LOG(LogTemp, Log, TEXT("GeometryCollection loaded successfully."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load GeometryCollection! Check the path."));
+	}
+
+	// RootComponent 물리 비활성화
+	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(RootComponent))
+	{
+		RootComp->SetSimulatePhysics(false);
+		RootComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 기본 충돌은 유지하되 물리 비활성화
 	}
 }
 
@@ -106,7 +119,7 @@ void ASHEnemy::RotateTowardsPlayer()
 }
 
 void ASHEnemy::AttachWeapon()
-{
+{  
 	if (GunClass)
 	{
 		// BP_Gun 인스턴스 생성 (위치 지정 추가)
@@ -141,39 +154,71 @@ void ASHEnemy::OnDeath()
 
 	// SkeletalMesh 숨기기
 	GetMesh()->SetVisibility(false);
+	//GetMesh()->SetHiddenInGame(true);	
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetSimulatePhysics(false);
+
+	// RootComponent 물리 비활성화 및 속도 초기화
+	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(GetRootComponent()))
+	{
+		RootComp->SetSimulatePhysics(false);
+		RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RootComp->SetAllPhysicsLinearVelocity(FVector::ZeroVector);
+		RootComp->SetAllPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	}
+	
+	if (Gun)
+	{
+		Gun->Destroy();
+		Gun = nullptr;
+	}
 	
 	if (GeometryCollectionComp)
 	{
+		FVector EnemyLocation = GetActorLocation();
+		FRotator EnemyRotation = GetActorRotation();
+		GeometryCollectionComp->SetWorldLocation(EnemyLocation);
+		GeometryCollectionComp->SetWorldRotation(EnemyRotation);
+		
 		GeometryCollectionComp->SetVisibility(true);
 		GeometryCollectionComp->SetSimulatePhysics(true);
-
 		GeometryCollectionComp->SetEnableGravity(true);
 		GeometryCollectionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GeometryCollectionComp->SetCollisionObjectType(ECC_PhysicsBody);
+		// 초기 속도 초기화 (하늘로 올라가는 문제 방지)
+		GeometryCollectionComp->SetAllPhysicsLinearVelocity(FVector::ZeroVector);
+		GeometryCollectionComp->SetAllPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+		
+		GeometryCollectionComp->ApplyExternalStrain(1000.0f, GetActorLocation(), 150.0f, 1);
+		// 방사형 임펄스 적용
+		FVector ExplosionCenter = GetActorLocation() + FVector(0.0f, 0.0f, 120.0f); 
+		float ExplosionStrength = 1000.0f; // 세기 설정
+		float ExplosionRadius = 1200.0f;    // 반경 증가
+		GeometryCollectionComp->AddRadialImpulse(ExplosionCenter, ExplosionRadius, ExplosionStrength, ERadialImpulseFalloff::RIF_Linear, true);
+		GeometryCollectionComp->AddForce(FVector(0.0f, 0.0f, -8000.0f), NAME_None, true);
+		// 일정 시간 후 파편 제거
+		GetWorld()->GetTimerManager().SetTimer(DestructionTimerHandle, this, &ASHEnemy::DestroyFragments, 3.0f, false);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("GeometryCollectionComp is NULL!"));
 	}
-	// 일정 시간 후 파편 제거
-	GetWorld()->GetTimerManager().SetTimer(DestructionTimerHandle, this, &ASHEnemy::DestroyFragments, 5.0f, false);
 }
 
 
 float ASHEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("TakeDamage! DamageAmount: %f"), DamageAmount);
+	if (bIsDead) return 0.0f;
 
-	if (bIsDead) return 0.0f; // 이미 죽었으면 처리 안 함
+	// 즉사 처리
+	bIsDead = true;
+	Health = 0.0f;
 
-	// 즉사
-	bIsDead = true;  
-	Health = 0.0f;  
+	// 사망 처리 즉시 호출
+	OnDeath();
 
-	// 사망 처리 함수 호출
-	OnDeath();  
+	return DamageAmount;
 
-	return DamageAmount; 
 }
 
 void ASHEnemy::DestroyFragments()
@@ -185,10 +230,5 @@ void ASHEnemy::DestroyFragments()
 	Destroy(); // 적 액터 제거
 }
 
-void ASHEnemy::DebugTakeDamage()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Enemy took damage!"));
-	TakeDamage(100.0f, FDamageEvent(), nullptr, nullptr);
-}
 
 #pragma endregion

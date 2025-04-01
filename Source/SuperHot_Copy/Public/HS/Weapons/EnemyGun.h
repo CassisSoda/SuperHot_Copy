@@ -82,7 +82,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class UBoxComponent* BoxComp;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackRange = 2000.0f;
 
 private:
 	APawn* PlayerRef;

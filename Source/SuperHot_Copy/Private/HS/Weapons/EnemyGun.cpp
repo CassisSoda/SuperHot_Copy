@@ -53,19 +53,36 @@ void AEnemyGun::Tick(float DeltaTime)
 
 void AEnemyGun::Fire()
 {
-	if (!bCanFire) return;
-
+	if (!bCanFire)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot fire: bCanFire is false!"));
+		return;
+	}
 	// BulletClass 확인 로그 추가
 	if (!BulletClass)
-	{
+	{	
+		UE_LOG(LogTemp, Error, TEXT("BulletClass is NULL!"));
+
 		return;
 	}
-	if (!PlayerRef) 
-	{
-		return;
-	}
-	bCanFire = false;
 	
+	if (!PlayerRef)
+	{
+		PlayerRef = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		if (!PlayerRef)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No Player ref"))
+			return;
+		}
+	}
+
+	float DistanceToPlayer = FVector::Dist(FirePoint->GetComponentLocation(),PlayerRef->GetActorLocation());
+
+	if (DistanceToPlayer > AttackRange)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("out of range"))
+		return;
+	}
 	// 발사 위치 및 방향 설정
 	FVector MuzzleLocation = FirePoint->GetComponentLocation(); 
 	FVector PlayerLocation = PlayerRef->GetActorLocation();
@@ -81,6 +98,7 @@ void AEnemyGun::Fire()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Bullet spawned successfully at: %s"), *MuzzleLocation.ToString());
 	}
+	bCanFire = false;
 
 	// 총구 이펙트 생성
 	if (MuzzleEffect)
@@ -106,6 +124,8 @@ void AEnemyGun::Fire()
 
 void AEnemyGun::ResetFireCooldown()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ResetFireCooldown() called!"));
+
 	bCanFire = true;
 }
 

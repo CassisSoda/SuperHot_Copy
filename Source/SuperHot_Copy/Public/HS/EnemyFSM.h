@@ -57,7 +57,6 @@ public:
 	
 	//class AWeaponBase* Weapon;
 	
-	
 	UPROPERTY(VisibleAnywhere,Category=FSM)
 	class ASHPlayer* target;
 
@@ -90,7 +89,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float damageDelayTime = 2.0f;
-
 	
 	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);
 
