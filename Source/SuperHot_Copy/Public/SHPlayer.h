@@ -45,7 +45,9 @@ public:
 	bool bLeftPunch = false;
 	TArray<FKey> LeftPressedKeys;
 
+	bool isMoving  = false;
 	bool isGrabbing = false;
+	bool isFiring  =false;
 	bool isDead = false;
 
 	FVector PrePos;
@@ -181,6 +183,8 @@ public:
 	void LeftPunch();
 	void ResetLeftCombo();
 
+	void UpdatePunch();
+
 	void GunFire(const struct FInputActionValue& InputValue);
 
 	void TestKill();
@@ -189,7 +193,12 @@ public:
 
 #pragma endregion InputActionFucntion
 
-	void ShiftDilation();
+	void UpdateTimeDilation();
+	void ShiftDilation(bool bDelay);
+
+	FTimerHandle GrabThrowTimerHandle;
+	void ResetTimeDilationAfterGrabThrow();
+
 	UFUNCTION()
 	void OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -204,7 +213,7 @@ public:
 
 	void ClearPlayerState();
 
-	//FORCEINLINE FRotator 
+	FVector ForwardDirection();
 
 	FVector	ThrowDirection;
 	FQuat DeltaRotation;

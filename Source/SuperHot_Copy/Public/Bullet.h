@@ -40,6 +40,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Default")
 	float Speed = 1500.f;
 
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UParticleSystem* BulletTrailEffect;
+
 	class ASHPlayer* player;
 	class AEnemy* enemy;
 

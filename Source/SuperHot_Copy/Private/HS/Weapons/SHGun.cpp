@@ -7,6 +7,8 @@
 #include "shDebug.h"
 #include "Components/BoxComponent.h"
 #include "Bullet.h"
+#include "SHPlayer.h"
+#include "MotionControllerComponent.h"
 
 // Sets default values
 ASHGun::ASHGun()
@@ -66,9 +68,10 @@ void ASHGun::Fire()
 		return;
 	}
 	bCanFire = false;
+
 	if (Magazine > 0)
 	{
-
+		//여기 고쳐야함
 	}
 	
 	// 발사 위치 및 방향 설정
@@ -88,11 +91,32 @@ void ASHGun::Fire()
 		}
 		UE_LOG(LogTemp, Warning, TEXT("[Fire] Player is holding the gun! Spawning PlayerBulletClass."));
 
+		ASHPlayer* player = Cast<ASHPlayer>(PlayerRef);
+		if (player)
+		{
+
+			FVector StartPos = player->RightHandAim->GetComponentLocation ();
+			FVector EndPos	 = StartPos + player->RightHandAim->GetForwardVector () * 10000.f;
+
+			FHitResult HitInfo;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this);
+			Params.AddIgnoredActor (player);
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitInfo, StartPos, EndPos, ECC_Visibility, Params);
+
+			FVector TargetLocation = bHit ? HitInfo.Location : EndPos;
+			FVector LaunchDirection = (TargetLocation - StartPos).GetSafeNormal ();
+			FRotator SpawnRotation = LaunchDirection.Rotation ();
+			SpawnRotation += FRotator(-90.0f, 0.0f, 0.0f);
+
+
+			ABullet* FiredBullet = GetWorld ()->SpawnActor <ABullet>(PlayerBulletClass, MuzzleLocation, SpawnRotation, spawnParams);
+			Debug::NullPrint(FiredBullet, "");
+			FiredBullet->SetVelocity (player->RightHandAim->GetForwardVector ());
+		}
+
 		
 		//FRotator AimRotate = 
-		ABullet* FiredBullet = GetWorld ()->SpawnActor <ABullet>(PlayerBulletClass, MuzzleLocation, MuzzleLocation.Rotation(), spawnParams);
-		Debug::NullPrint(FiredBullet, "");
-		FiredBullet->SetVelocity (MuzzleLocation.ForwardVector);
 		Magazine--;
 	}
 	else

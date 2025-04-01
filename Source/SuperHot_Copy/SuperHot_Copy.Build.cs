@@ -8,7 +8,7 @@ public class SuperHot_Copy : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","HeadMountedDisplay","Niagara", "AIModule", "NavigationSystem", "GeometryCollectionEngine", "XRBase" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","HeadMountedDisplay","Niagara", "AIModule", "NavigationSystem", "GeometryCollectionEngine", "XRBase" , "UMG"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 

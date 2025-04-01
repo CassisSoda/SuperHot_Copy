@@ -52,7 +52,16 @@ void ABullet::BeginPlay()
 
 	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ABullet::OnBulletOverlap);
 
-	Debug::Print("Fire!!!");
+	if (BulletTrailEffect)
+	{
+		FVector TrailOffset = FVector(-10.f, 0.f, 0.f);
+		FRotator TrailRotation = GetActorRotation();
+
+		UGameplayStatics::SpawnEmitterAttached(
+			BulletTrailEffect, MeshComp, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset);
+
+	}
 }
 
 // Called every frame

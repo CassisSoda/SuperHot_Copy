@@ -25,6 +25,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "HS/Enemy.h"
 #include "../../../../Plugins/Runtime/XRBase/Source/XRBase/Public/HeadMountedDisplayFunctionLibrary.h"
+#include "TutorialWidget.h"
 
 
 // Sets default values
@@ -180,6 +181,11 @@ void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*if (UTutorialWidget* widget = CreateWidget <UTutorialWidget>(GetWorld(), UTutorialWidget::StaticClass()))
+	{
+		widget->AddToViewport();
+	}*/
+
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
 		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin (EHMDTrackingOrigin::View);
@@ -203,6 +209,7 @@ void ASHPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DrawCrosshair ();
+	
 
 	bRightPunch = isBPressed && isRGripPressed && isRTriggerPressed;
 	if (!isGrabbing && bRightPunch && RightPressedKeys.Contains (EKeys::Q) &&
@@ -221,6 +228,8 @@ void ASHPlayer::Tick(float DeltaTime)
 		RightAnim->GripAlpha = 1.f;
 
 	Grabbing ();
+
+	UpdatePunch();
 	
 
 }
@@ -244,10 +253,11 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (playerInput)
 	{
 		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Triggered, this, &ASHPlayer::Move);
+		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::Move);
 		playerInput->BindAction(IA_PlayerTurn, ETriggerEvent::Triggered, this, &ASHPlayer::Turn);
 
-		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
-		playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
+		//playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Started, this, &ASHPlayer::ShiftDilation);
+		//playerInput->BindAction(IA_PlayerMove, ETriggerEvent::Completed, this, &ASHPlayer::ShiftDilation);
 
 		playerInput->BindAction(IA_RGrip, ETriggerEvent::Started, this, &ASHPlayer::TryGrab);
 		playerInput->BindAction(IA_RGrip, ETriggerEvent::Completed, this, &ASHPlayer::TryRelease);
@@ -255,6 +265,7 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		#pragma region Punch_Bind
 		playerInput->BindAction(IA_BPunch, ETriggerEvent::Triggered, this, &ASHPlayer::OnBPressed);
 		playerInput->BindAction(IA_BPunch, ETriggerEvent::Completed,this, &ASHPlayer::OnBReleased );
+		
 		
 		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Triggered,this, &ASHPlayer::OnRTriggerPressed);
 		playerInput->BindAction(IA_RTrigger, ETriggerEvent::Completed,this, &ASHPlayer::OnRTriggerReleased );
@@ -287,10 +298,21 @@ void ASHPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ASHPlayer::Move(const struct FInputActionValue& InputValue)
 {
 	if(isDead) return;
-	FVector2D Scale = InputValue.Get<FVector2D>(); 
 
-	AddMovementInput (VRCamera->GetForwardVector (), Scale.X);
-	AddMovementInput (VRCamera->GetRightVector (), Scale.Y);
+	FVector2D Scale = InputValue.Get<FVector2D>(); 
+	if (Scale != FVector2D(0.f))
+	{
+		isMoving = true;
+		AddMovementInput(VRCamera->GetForwardVector(), Scale.X);
+		AddMovementInput(VRCamera->GetRightVector(), Scale.Y);
+		UpdateTimeDilation ();
+	}
+	else if (isMoving)
+	{
+		isMoving = false;
+		UpdateTimeDilation ();
+	}
+
 
 }
 
@@ -310,6 +332,7 @@ void ASHPlayer::OnBPressed(const FInputActionValue& InputValue)
 		isBPressed = true;
 		RightPressedKeys.Add(EKeys::Q);
 	}
+	UpdateTimeDilation();
 
 }
 
@@ -320,23 +343,25 @@ void ASHPlayer::OnBReleased(const FInputActionValue& InputValue)
 	{
 		RightPressedKeys.RemoveSingle(EKeys::Q);
 		isBPressed = false;
-		isDelay = false;
 		if(bRightPunch)
 			bRightPunch = false;
 	}
-	ShiftDilation ();	
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnRTriggerPressed(const FInputActionValue& InputValue)
 {	
 	if (isDead) return;
 	RightAnim->TriggerAlpha = InputValue.Get <float>();
-	if (!RightPressedKeys.Contains(EKeys::E) && !isGrabbing)
+	if (!isGrabbing && !RightPressedKeys.Contains(EKeys::E) )
 	{
 		isRTriggerPressed = true;
 		RightPressedKeys.Add(EKeys::E);
 
 	}
+	else if(isGrabbing)
+		isFiring = true;
+	UpdateTimeDilation();
 	
 }
 
@@ -348,11 +373,12 @@ void ASHPlayer::OnRTriggerReleased(const FInputActionValue& InputValue)
 	{
 		RightPressedKeys.RemoveSingle(EKeys::E);
 		isRTriggerPressed = false;
-		isDelay = false;
 		if (bRightPunch)
 			bRightPunch = false;
 	}
-	ShiftDilation ();
+	if(isGrabbing)
+		isFiring = false;
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
@@ -364,6 +390,7 @@ void ASHPlayer::OnRGripPressed(const FInputActionValue& InputValue)
 		isRGripPressed = true;
 		RightPressedKeys.Add (EKeys::C);
 	}
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
@@ -376,11 +403,10 @@ void ASHPlayer::OnRGripReleased(const FInputActionValue& InputValue)
 	{
 		RightPressedKeys.RemoveSingle(EKeys::C);
 		isRGripPressed = false;
-		isDelay = false;
 		if (bRightPunch)
 			bRightPunch = false;
 	}
-	ShiftDilation ();	
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::RightPunch()
@@ -388,10 +414,7 @@ void ASHPlayer::RightPunch()
 	isDelay = true;
 	bRightPunch = true;
 	RightHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	ShiftDilation();
-	//Debug::Print ("RightPunch");
-	
-	//UE_LOG (LogTemp, Log, TEXT("RightPunch"));
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::ResetRightCombo()
@@ -414,6 +437,7 @@ void ASHPlayer::OnYPressed(const FInputActionValue& InputValue)
 		isYPressed = true;
 		LeftPressedKeys.Add(EKeys::I);
 	}
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
@@ -424,11 +448,10 @@ void ASHPlayer::OnYReleased(const FInputActionValue& InputValue)
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::I);
 		isYPressed = false;
-		isDelay = false;
 		if (bLeftPunch)
 			bLeftPunch = false;
 	}
-	ShiftDilation();
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
@@ -440,6 +463,7 @@ void ASHPlayer::OnLTriggerPressed(const FInputActionValue& InputValue)
 		isLTriggerPressed = true;
 		LeftPressedKeys.Add(EKeys::P);
 	}
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
@@ -450,11 +474,10 @@ void ASHPlayer::OnLTriggerReleased(const FInputActionValue& InputValue)
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::P);
 		isLTriggerPressed = false;
-		isDelay = false;
 		if (bLeftPunch)
 			bLeftPunch = false;
 	}
-	ShiftDilation();
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
@@ -466,6 +489,7 @@ void ASHPlayer::OnLGripPressed(const FInputActionValue& InputValue)
 		isLGripPressed = true;
 		LeftPressedKeys.Add(EKeys::M);
 	}
+	UpdateTimeDilation();
 }
 
 void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
@@ -476,11 +500,10 @@ void ASHPlayer::OnLGripReleased(const FInputActionValue& InputValue)
 	{
 		LeftPressedKeys.RemoveSingle(EKeys::M);
 		isLGripPressed = false;
-		isDelay = false;
 		if (bLeftPunch)
 			bLeftPunch = false;
 	}
-	ShiftDilation();
+	UpdateTimeDilation();
 }
 
 
@@ -489,9 +512,8 @@ void ASHPlayer::LeftPunch()
 	isDelay = true;
 	bLeftPunch = true;
 	LeftHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	ShiftDilation();
-	//Debug::Print("LeftPunch");
-	//UE_LOG(LogTemp, Log, TEXT("LeftPunch"));
+	UpdateTimeDilation();
+
 }
 
 void ASHPlayer::ResetLeftCombo()
@@ -504,6 +526,35 @@ void ASHPlayer::ResetLeftCombo()
 	LeftPressedKeys.Empty();
 }
 
+void ASHPlayer::UpdatePunch()
+{
+	if (bRightPunch)
+	{
+		RightHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		RightAnim->isPunching = true;
+		RightHandCollision->SetHiddenInGame(false);
+	}
+	else
+	{
+		RightHandCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RightAnim->isPunching = false;
+		RightHandCollision->SetHiddenInGame(true);
+	}
+
+	if (bLeftPunch)
+	{
+		LeftHandCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		LeftAnim->isPunching = true;
+		LeftHandCollision->SetHiddenInGame(false);
+	}
+	else
+	{
+		LeftHandCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		LeftAnim->isPunching = false;
+		LeftHandCollision->SetHiddenInGame(true);
+	}
+}
+
 void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
 {
 	if(!isGrabbing || isDead)
@@ -511,8 +562,6 @@ void ASHPlayer::GunFire(const struct FInputActionValue& InputValue)
 	Debug::Print (FString("Trigger!"));
 	
 	auto gun = Cast<ASHGun>(GrabObject);
-	//auto gun1 = Cast<ASHGun>(GrabObjectComp);
-	//Debug::NullPrint(gun1, FString(""));
 
 
 	if (gun)
@@ -530,11 +579,25 @@ void ASHPlayer::TestKill()
 	isDead = true;
 	Debug::Print("Test Kill!!!");
 }
-void  ASHPlayer::ShiftDilation()
+
+
+
+void ASHPlayer::UpdateTimeDilation()
+{
+	if (GetWorld()->GetTimerManager().IsTimerActive(GrabThrowTimerHandle))
+	{
+		return;
+	}
+
+	isDelay = isFiring || isMoving || (isRGripPressed && isRTriggerPressed && isBPressed) || (isLGripPressed && isLTriggerPressed && isYPressed);
+	ShiftDilation (isDelay);
+}
+
+void  ASHPlayer::ShiftDilation(bool bDelay)
 {
 	if(isDead) return;
 
-	if (isDelay)
+	if (bDelay)
 	{
 		GetWorldSettings()->SetTimeDilation(1.f);
 	}
@@ -543,44 +606,20 @@ void  ASHPlayer::ShiftDilation()
 		GetWorldSettings()->SetTimeDilation(0.005f);
 		
 	}
-	isDelay = !isDelay;
 
-	if (bRightPunch)
-	{
-		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
-		RightAnim->isPunching = true;
-		RightHandCollision->SetHiddenInGame(false);
-	}
-	else
-	{
-		RightHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
-		RightAnim->isPunching = false;
-		RightHandCollision->SetHiddenInGame(true);
-	}
+}
 
-	if (bLeftPunch)
-	{
-		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::QueryAndPhysics);
-		LeftAnim->isPunching = true;
-		LeftHandCollision->SetHiddenInGame(false);
-	}
-	else
-	{
-		LeftHandCollision->SetCollisionEnabled (ECollisionEnabled::NoCollision);
-		LeftAnim->isPunching = false;
-		LeftHandCollision->SetHiddenInGame(true);
-	}
+void ASHPlayer::ResetTimeDilationAfterGrabThrow()
+{
+	UpdateTimeDilation();
 }
 
 //TODO
 void ASHPlayer::OnEnemyOverlaped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Debug::Print("Overlap Detected");
-	//UE_LOG (LogTemp, Log, )
 	enemy = Cast<AEnemy>(OtherActor);
 	if (enemy)
 	{
-		Debug::Print("Punch!!!");
 		UGameplayStatics::ApplyDamage(enemy, 1.f, GetWorld()->GetFirstPlayerController (), this, UDamageType::StaticClass());
 
 	}
@@ -625,7 +664,6 @@ void ASHPlayer::TryGrab()
 
 	}
 	FString s = HitObjects[Nearest].GetActor()->GetActorNameOrLabel();
-	Debug::Print(s);
 
 	if (isGrabbing && HitObjects[Nearest].GetActor()->GetActorNameOrLabel().Contains("SHGun"))
 	{
@@ -639,8 +677,16 @@ void ASHPlayer::TryGrab()
 		PrePos = RightHand-> GetComponentLocation ();
 		PreRot = RightHand-> GetComponentQuat ();
 
-		isDelay = true;
-		ShiftDilation ();
+		ShiftDilation(true);
+		GetWorld()->GetTimerManager().SetTimer(
+			GrabThrowTimerHandle,
+			this,
+			&ASHPlayer::ResetTimeDilationAfterGrabThrow,
+			0.5f, // 0.5초 후 실행
+			false // 반복 없음
+		);
+
+		GetWorld()->GetTimerManager().ClearTimer(GrabThrowTimerHandle);
 		
 	}
 	
@@ -734,6 +780,16 @@ void ASHPlayer::TryRelease()
 	GrabObjectComp = nullptr;
 	GrabObject = nullptr;
 
+	ShiftDilation(true);
+	GetWorld()->GetTimerManager().SetTimer(
+		GrabThrowTimerHandle,
+		this,
+		&ASHPlayer::ResetTimeDilationAfterGrabThrow,
+		0.5f, // 0.5초 후 실행
+		false // 반복 없음
+	);
+	GetWorld()->GetTimerManager().ClearTimer(GrabThrowTimerHandle);
+
 }
 
 void ASHPlayer::DrawCrosshair()
@@ -803,7 +859,9 @@ void ASHPlayer::ClearPlayerState()
 	ResetRightCombo ();
 	ResetLeftCombo ();
 	
+	isMoving = false;
 	isGrabbing = false;
+	isFiring = false;
 	isDead = false;
 
 	#pragma endregion State_Reset
@@ -818,6 +876,11 @@ void ASHPlayer::ClearPlayerState()
 	
 }
 
+
+FVector ASHPlayer::ForwardDirection()
+{
+	return RightHandAim->GetForwardVector ();
+}
 
 void ASHPlayer::Respawn()
 {
