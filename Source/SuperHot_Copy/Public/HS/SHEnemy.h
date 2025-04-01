@@ -76,11 +76,4 @@ public:
 	void DestroyFragments();
 
 
-
-#pragma region 데미지 테스트
-	UFUNCTION()
-	void DebugTakeDamage();
-#pragma endregion
-
-
 };
