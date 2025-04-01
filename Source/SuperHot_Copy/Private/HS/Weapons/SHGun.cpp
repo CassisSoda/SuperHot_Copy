@@ -66,6 +66,10 @@ void ASHGun::Fire()
 		return;
 	}
 	bCanFire = false;
+	if (Magazine > 0)
+	{
+
+	}
 	
 	// 발사 위치 및 방향 설정
 	FVector MuzzleLocation = FirePoint->GetComponentLocation(); 
@@ -89,6 +93,7 @@ void ASHGun::Fire()
 		ABullet* FiredBullet = GetWorld ()->SpawnActor <ABullet>(PlayerBulletClass, MuzzleLocation, MuzzleLocation.Rotation(), spawnParams);
 		Debug::NullPrint(FiredBullet, "");
 		FiredBullet->SetVelocity (MuzzleLocation.ForwardVector);
+		Magazine--;
 	}
 	else
 	{

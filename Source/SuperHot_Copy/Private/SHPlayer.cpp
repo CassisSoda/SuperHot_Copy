@@ -24,6 +24,7 @@
 #include "HS/SHEnemy.h"
 #include "Kismet/GameplayStatics.h"
 #include "HS/Enemy.h"
+#include "../../../../Plugins/Runtime/XRBase/Source/XRBase/Public/HeadMountedDisplayFunctionLibrary.h"
 
 
 // Sets default values
@@ -178,6 +179,11 @@ ASHPlayer::ASHPlayer()
 void ASHPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
+	{
+		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin (EHMDTrackingOrigin::View);
+	}
 
 	RightAnim = Cast<UHandAnimInstance>(RightHandMesh->GetAnimInstance ());
 	LeftAnim = Cast<UHandAnimInstance>(LeftHandMesh->GetAnimInstance());
